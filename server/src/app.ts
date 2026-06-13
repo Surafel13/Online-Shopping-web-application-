@@ -13,10 +13,15 @@ import { ErrorHandler } from "./middleware/error.middleware.js";
 
 import authRoute from "./modules/auth/auth.routes.js";
 import userRoute from "./modules/users/user.routes.js";
+import productRoute from "./modules/product/product.route.js";
+import catagoryRoute from "./modules/catagory/catagory.route.js";
+
 
 
 app.use("/api/auth", authRoute)
 app.use("/api/account", userRoute)
+app.use("/api/categories", catagoryRoute)
+app.use("/api/products", productRoute)
 
 
 app.use(ErrorHandler)
