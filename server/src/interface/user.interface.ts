@@ -1,5 +1,15 @@
 import { Types } from "mongoose";
 
+export interface IAddress {
+    _id?: Types.ObjectId;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+}
+
+
 export interface IUser{
     _id: Types.ObjectId,
     username: string,
@@ -7,4 +17,5 @@ export interface IUser{
     password: string,
     role: "customer" | "admin",
     isActive : boolean,
+    addresses: IAddress[]
 }

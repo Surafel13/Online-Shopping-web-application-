@@ -1,6 +1,29 @@
 import mongoose from "mongoose";
 import type { IUser } from "../interface/user.interface.js";
 
+const addressSchema = new mongoose.Schema({
+    street: {
+        type: String,
+        required: true
+    },
+    city: { 
+         type: String,
+        required: true
+    },
+    state: {
+        type: String,
+        required: true
+    },
+    postalCode: {
+        type: String,
+        required: true
+    },
+    country: {
+        type: String,
+        required: true
+    }
+});
+
 const userSchema = new mongoose.Schema<IUser>({
     username: {
         type: String,
@@ -13,22 +36,23 @@ const userSchema = new mongoose.Schema<IUser>({
     },
     password:{
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     role : {
         type : String,
         enum :{
             values : ["customer", "admin"],
-            message : "Out of decleard user role" 
+            message : "{VALUE} is not supported role." 
         },
         default : "customer",
     },
     isActive : {
         type: Boolean,
         default: true
-    }},
-    {timestamps : true},
-)
+    },
+    addresses: [addressSchema]
+}, {timestamps : true});
 
 const Users = mongoose.model<IUser>("Users", userSchema)
 export default Users

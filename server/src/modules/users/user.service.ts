@@ -1,9 +1,10 @@
 import { AppError } from "../../utils/appError.utils.js";
-import { UserProfileRepo } from "./user.repo.js";
+import { UserProfileRepository } from "./user.repo.js";
 import { Types } from "mongoose";
+import type{ IAddress } from "../../interface/user.interface.js";
 
 export class UserProfileService {
-  private userProfileRepo = new UserProfileRepo();
+  private userProfileRepo = new UserProfileRepository();
 
   async getUserProfile(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
@@ -36,5 +37,56 @@ export class UserProfileService {
       throw new AppError("Account not found", 404);
     }
     return result;
+  }
+
+  //Adresses
+  async addAddress(userId: string, address: IAddress) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid User Id", 400);
+    }
+    const user = await this.userProfileRepo.addAddress(userId, address);
+    if (!user) {
+      throw new AppError("Account not found", 404);
+    }
+    return user;
+  }
+
+  async updateAddress(userId: string, addressId: string, address: IAddress) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid User Id", 400);
+    }
+
+    if (!Types.ObjectId.isValid(addressId)) {
+      throw new AppError("Invalid Address Id", 400);
+    }
+
+    const user = await this.userProfileRepo.updateAddress(
+      userId,
+      addressId,
+      address,
+    );
+
+    if (!user) {
+      throw new AppError("User or Address not found", 404);
+    }
+    return user;
+  }
+
+  async deleteAddress(userId: string, addressId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid User Id", 400);
+    }
+
+    if (!Types.ObjectId.isValid(addressId)) {
+      throw new AppError("Invalid Address Id", 400);
+    }
+
+    const user = await this.userProfileRepo.deleteAddress(userId, addressId);
+
+    if (!user) {
+      throw new AppError("Account not found", 404);
+    }
+
+    return user;
   }
 }

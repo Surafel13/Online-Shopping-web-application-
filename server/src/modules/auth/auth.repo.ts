@@ -6,7 +6,7 @@ export class UsersRepo {
     }
 
     async findByEmail(email: string){
-        return await Users.findOne({email : email})
+        return await Users.findOne({email : email}).select("+password");
     }
 
 }
