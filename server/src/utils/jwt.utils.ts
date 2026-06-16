@@ -1,10 +1,21 @@
-import jwt from "jsonwebtoken";
-import { Types } from "mongoose";
+import jwt, { type SignOptions } from "jsonwebtoken";
+import { Types } from "mongoose"
 
-const JWT_SECRET = process.env.JWT_SECRET || "mysecretkey";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "30d";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRE = process.env.JWT_EXPIRE || "90d"
 
-export const generateToken = (userId: Types.ObjectId) => {
-    return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
+
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables');
+  process.exit(1);
+}
+
+
+export const generateToken = (userId: Types.ObjectId, userRole: string) => {
+  return jwt.sign({
+    id: userId.toString(),
+    role : userRole
+  }, 
+  JWT_SECRET as string, 
+  { expiresIn: JWT_EXPIRE } as SignOptions)
 };
-

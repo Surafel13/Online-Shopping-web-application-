@@ -5,7 +5,7 @@ import { OrderService } from "./order.service.js";
 const orderService = new OrderService();
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.params.userId as string;
+  const userId = req.user.userId;
 
   const { addressId, paymentMethod } = req.body;
 
@@ -36,7 +36,7 @@ export const getOrderById = asyncHandler(
 
 export const getUserOrders = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.params.userId as string;
+    const userId = req.user.userId;
 
     const orders = await orderService.getUserOrders(userId);
 

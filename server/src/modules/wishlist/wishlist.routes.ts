@@ -8,12 +8,12 @@ import {
 
 const router = Router();
 
-router.get("/:id", getWishlist);
+router.get("/", getWishlist);
 
-router.post("/:id", addToWishlist);
+router.post("/", addToWishlist);
 
-router.delete("/:id/:productId", removeFromWishlist);
+router.delete("/:productId", removeFromWishlist);
 
-router.delete("/:id", clearWishlist);
+router.delete("/", clearWishlist);
 
 export default router;

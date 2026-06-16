@@ -1,13 +1,24 @@
-import express from "express";
-import { getProfile, updateProfile, deleteProfile, addAddress, updateAddress, deleteAddress } from "./user.controller.js";
+import { Router } from "express";
+import { authMiddleware } from "../../middleware/auth.middleware.js";
+import {
+  getProfile,
+  updateProfile,
+  deleteProfile,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+} from "./user.controller.js";
 
-const userRoute = express.Router();
+const router = Router();
 
-userRoute.get("/:id", getProfile)
-userRoute.put("/:id", updateProfile)
-userRoute.delete("/:id", deleteProfile)
-userRoute.post("/:id/address", addAddress)
-userRoute.put("/:id/address/:addressId", updateAddress)
-userRoute.delete("/:id/address/:addressId", deleteAddress)
+router.use(authMiddleware);
 
-export default userRoute;
+router.get("/profile", getProfile);
+router.patch("/profile", updateProfile);
+router.delete("/profile", deleteProfile);
+
+router.post("/profile/address", addAddress);
+router.patch("/profile/address/:addressId", updateAddress);
+router.delete("/profile/address/:addressId", deleteAddress);
+
+export default router;

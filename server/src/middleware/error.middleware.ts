@@ -1,37 +1,87 @@
-import type { Request, Response, NextFunction } from "express";
+import type {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler,
+} from "express";
+import { ZodError } from "zod";
 import { AppError } from "../utils/appError.utils.js";
-import { success, ZodError } from "zod";
-import { error } from "node:console";
+import { logger } from "../utils/logger/logger.winston.js";
 
-export const ErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  // Custom Application Errors
+  if (err instanceof AppError) {
+    logger.warn(`[${req.method}] ${req.originalUrl} - ${err.message}`);
 
-    let statusCode = 500;
-    let message = "Internal Server Error";
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  }
 
-    if(err instanceof AppError){
-        statusCode = err.statusCode,
-        message = err.message
-    }
+  // Zod Validation Errors
+  if (err instanceof ZodError) {
+    logger.warn(`[${req.method}] ${req.originalUrl} - Validation Error`);
 
-    else if(err instanceof ZodError){
-        const formatZodError = (err: ZodError) => {
-            return err.issues.map((issue) => ({
-                field : issue.path.join('.'),
-                message : issue.message
-            }));
-        };
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors: err.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
+  }
 
-        res.status(400).json({
-            success : false,
-            error : formatZodError(err)
-        })
-    }
-    
-        
+  // JWT Expired
+  if (err.name === "TokenExpiredError") {
+    logger.warn(`[${req.method}] ${req.originalUrl} - Token Expired`);
 
-    res.status(statusCode).json({
-        success : false,
-        message : message
-    })
+    return res.status(401).json({
+      success: false,
+      message: "Access token expired",
+    });
+  }
 
-}
+  // JWT Invalid
+  if (err.name === "JsonWebTokenError") {
+    logger.warn(`[${req.method}] ${req.originalUrl} - Invalid Token`);
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+    });
+  }
+
+  // Mongoose Validation Error
+  if (err.name === "ValidationError") {
+    logger.warn(
+      `[${req.method}] ${req.originalUrl} - Mongoose Validation Error`,
+    );
+
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  // Invalid MongoDB ObjectId
+  if (err.name === "CastError") {
+    logger.warn(`[${req.method}] ${req.originalUrl} - Invalid ObjectId`);
+
+    return res.status(400).json({
+      success: false,
+      message: "Invalid resource id",
+    });
+  }
+
+  // Unknown Errors
+  logger.error(`[${req.method}] ${req.originalUrl} - ${err.message}`, {
+    stack: err.stack,
+  });
+
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
+};
