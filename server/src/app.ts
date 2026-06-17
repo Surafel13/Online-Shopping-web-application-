@@ -2,6 +2,9 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express"
+import { swaggerSpec } from "./config/swagger.js";
+
 
 import morganMiddleware from "./utils/logger/morgan.middleware.js";
 import { ErrorHandler } from "./middleware/error.middleware.js";
@@ -30,6 +33,13 @@ app.use(
         credentials: true,
     })
 );
+
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
+
 
 app.use(globalRateLimit);
 app.use(express.json());
