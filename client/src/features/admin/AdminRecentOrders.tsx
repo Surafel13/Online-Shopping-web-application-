@@ -1,0 +1,112 @@
+import { motion } from 'framer-motion';
+import { Eye, MoreHorizontal, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+
+const ORDERS = [
+  { id: 'ORD-9302', customer: 'Emma Watson', product: 'Minimalist Overcoat', amount: 320.00, status: 'Completed', date: 'Today, 10:42 AM' },
+  { id: 'ORD-9301', customer: 'Liam Thorne', product: 'Hybrid Backpack', amount: 185.00, status: 'Processing', date: 'Today, 09:15 AM' },
+  { id: 'ORD-9300', customer: 'Sophia Chen', product: 'Merino Wool Sweater', amount: 145.00, status: 'Pending', date: 'Yesterday' },
+  { id: 'ORD-9299', customer: 'Noah Patel', product: 'Leather Wallet', amount: 65.00, status: 'Completed', date: 'Yesterday' },
+  { id: 'ORD-9298', customer: 'Isabella Kim', product: 'Canvas Sneakers', amount: 110.00, status: 'Cancelled', date: 'Oct 12' },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } }
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'Completed':
+      return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"><CheckCircle2 className="h-3 w-3" /> Completed</span>;
+    case 'Processing':
+      return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium"><Clock className="h-3 w-3" /> Processing</span>;
+    case 'Pending':
+      return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium"><Clock className="h-3 w-3" /> Pending</span>;
+    case 'Cancelled':
+      return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium"><AlertCircle className="h-3 w-3" /> Cancelled</span>;
+    default:
+      return null;
+  }
+};
+
+export function AdminRecentOrders({ isLoading }: { isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="w-full bg-card rounded-xl border shadow-sm p-0 overflow-hidden">
+        <div className="p-6 border-b"><div className="h-6 w-32 bg-muted rounded animate-pulse" /></div>
+        <div className="divide-y">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 px-6 animate-pulse">
+              <div className="h-4 w-20 bg-muted rounded" />
+              <div className="h-4 w-32 bg-muted rounded" />
+              <div className="h-6 w-24 bg-muted rounded-full" />
+              <div className="h-4 w-16 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
+      <div className="p-6 border-b flex justify-between items-center bg-muted/10">
+        <div>
+          <h3 className="text-lg font-semibold tracking-tight">Recent Transactions</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">Your latest sales across all channels.</p>
+        </div>
+        <Button variant="outline" size="sm" className="h-8">View All</Button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-muted/30 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
+            <tr>
+              <th className="px-6 py-4">Order ID</th>
+              <th className="px-6 py-4">Customer</th>
+              <th className="px-6 py-4">Product</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Amount</th>
+              <th className="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <motion.tbody 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="divide-y bg-card"
+          >
+            {ORDERS.map((order) => (
+              <motion.tr 
+                key={order.id} 
+                variants={itemVariants}
+                className="hover:bg-muted/40 transition-colors group"
+              >
+                <td className="px-6 py-4 font-mono font-medium text-xs">{order.id}</td>
+                <td className="px-6 py-4 font-medium">{order.customer}</td>
+                <td className="px-6 py-4 text-muted-foreground">{order.product}</td>
+                <td className="px-6 py-4"><StatusBadge status={order.status} /></td>
+                <td className="px-6 py-4 font-semibold text-foreground">${order.amount.toFixed(2)}</td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white border"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white border"><MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" /></Button>
+                  </div>
+                </td>
+              </motion.tr>
+            ))}
+          </motion.tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
