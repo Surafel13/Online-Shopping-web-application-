@@ -51,7 +51,10 @@ const userSchema = new mongoose.Schema<IUser>({
         type: Boolean,
         default: true
     },
-    addresses: [addressSchema]
+    addresses: [addressSchema],
+    profileImg : {
+        type: String
+    }
 }, {timestamps : true});
 
 const Users = mongoose.model<IUser>("Users", userSchema)

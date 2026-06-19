@@ -16,25 +16,8 @@ const data = [
   { name: 'Dec', revenue: 7500 },
 ];
 
-interface AdminRevenueChartProps {
-  isLoading: boolean;
-}
-
-export function AdminRevenueChart({ isLoading }: AdminRevenueChartProps) {
+export function AdminRevenueChart() {
   const formatYAxis = (tickItem: number) => `$${tickItem / 1000}k`;
-
-  if (isLoading) {
-    return (
-      <div className="w-full h-[350px] bg-muted/20 rounded-xl border p-6 flex flex-col justify-end gap-2 animate-pulse">
-        <div className="h-8 w-1/3 bg-muted rounded mb-auto"></div>
-        <div className="flex gap-4 items-end h-[200px] opacity-50">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="flex-1 bg-muted rounded-t-sm" style={{ height: `${Math.random() * 80 + 20}%` }}></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <motion.div 

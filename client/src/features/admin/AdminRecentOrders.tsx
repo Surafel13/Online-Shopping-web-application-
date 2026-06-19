@@ -38,25 +38,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   }
 };
 
-export function AdminRecentOrders({ isLoading }: { isLoading: boolean }) {
-  if (isLoading) {
-    return (
-      <div className="w-full bg-card rounded-xl border shadow-sm p-0 overflow-hidden">
-        <div className="p-6 border-b"><div className="h-6 w-32 bg-muted rounded animate-pulse" /></div>
-        <div className="divide-y">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between p-4 px-6 animate-pulse">
-              <div className="h-4 w-20 bg-muted rounded" />
-              <div className="h-4 w-32 bg-muted rounded" />
-              <div className="h-6 w-24 bg-muted rounded-full" />
-              <div className="h-4 w-16 bg-muted rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
+export function AdminRecentOrders() {
   return (
     <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
       <div className="p-6 border-b flex justify-between items-center bg-muted/10">

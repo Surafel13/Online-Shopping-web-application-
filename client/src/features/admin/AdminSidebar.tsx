@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, ShoppingBag, Users, BarChart3, Settings, LogOut, ChevronRight
@@ -6,15 +7,15 @@ import {
 import gsap from 'gsap';
 
 const NAV_ITEMS = [
-  { name: 'Dashboard', icon: LayoutDashboard },
-  { name: 'Orders', icon: ShoppingBag },
-  { name: 'Customers', icon: Users },
-  { name: 'Analytics', icon: BarChart3 },
-  { name: 'Settings', icon: Settings },
+  { name: 'Dashboard', path: '/admin/overview', icon: LayoutDashboard },
+  { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
+  { name: 'Customers', path: '/admin/customers', icon: Users },
+  { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
+  { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];
 
 export function AdminSidebar() {
-  const [active, setActive] = useState('Dashboard');
+  const location = useLocation();
 
   useEffect(() => {
     gsap.fromTo(
@@ -25,7 +26,7 @@ export function AdminSidebar() {
   }, []);
 
   return (
-    <aside className="w-64 border-r bg-card/50 backdrop-blur-sm hidden lg:flex flex-col h-full min-h-[80vh]">
+    <aside className="w-64 border-r bg-background hidden lg:flex flex-col h-full min-h-[100dvh]">
       <div className="p-6 border-b">
         <h2 className="font-bold text-lg text-foreground tracking-tight">Admin Portal</h2>
         <p className="text-xs text-muted-foreground mt-1">Manage your store operations</p>
@@ -34,25 +35,25 @@ export function AdminSidebar() {
       <div className="flex-1 py-6 flex flex-col gap-2 px-4">
         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Main Menu</div>
         {NAV_ITEMS.map((item) => {
-          const isActive = active === item.name;
+          const isActive = location.pathname.includes(item.path) || (item.name === 'Dashboard' && location.pathname === '/admin');
           return (
-            <motion.button
-              key={item.name}
-              onClick={() => setActive(item.name)}
-              className={`admin-sidebar-item flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                isActive 
-                  ? 'bg-blue-600/10 text-blue-700 font-medium' 
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : ''}`} />
-                {item.name}
-              </div>
-              {isActive && <ChevronRight className="h-3.5 w-3.5 text-blue-600" />}
-            </motion.button>
+            <Link key={item.name} to={item.path}>
+              <motion.div
+                className={`admin-sidebar-item flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                  isActive 
+                    ? 'bg-blue-600/10 text-blue-700 font-medium' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : ''}`} />
+                  {item.name}
+                </div>
+                {isActive && <ChevronRight className="h-3.5 w-3.5 text-blue-600" />}
+              </motion.div>
+            </Link>
           );
         })}
       </div>

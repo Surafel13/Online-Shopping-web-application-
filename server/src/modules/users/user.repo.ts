@@ -7,7 +7,15 @@ export class UserProfileRepository {
   }
 
   async updateProfile(userId: string, userData: any) {
-    return await Users.findByIdAndUpdate(userId, userData).select("-password");
+    return await Users.findByIdAndUpdate(
+      userId,
+      {
+        $set: userData,
+      },
+      {
+        new: true,
+      },
+    ).select("-password");
   }
 
   async deleteProfile(userId: string) {
@@ -18,9 +26,7 @@ export class UserProfileRepository {
     return await Users.findByIdAndUpdate(
       userId,
       {
-        $push: {
-          addresses: address,
-        },
+        $push: { addresses: address },
       },
       { new: true },
     );
@@ -48,11 +54,7 @@ export class UserProfileRepository {
     return await Users.findByIdAndUpdate(
       userId,
       {
-        $pull: {
-          addresses: {
-            _id: addressId,
-          },
-        },
+        $pull: { addresses: { _id: addressId } },
       },
       { new: true },
     );
