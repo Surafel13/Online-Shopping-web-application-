@@ -29,7 +29,7 @@ export const updateProductSchema = z.object({
     .nonnegative("Stock must be a non-negative integer")
     .optional(),
   images: z
-    .array(z.string().url("Each image must be a valid URL"))
+    .array(z.string())
     .min(1, "At least one image is required")
     .optional(),
 });
