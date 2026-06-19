@@ -6,7 +6,10 @@ export const createProductSchema = z.object({
   price: z.coerce.number().positive(),
   category: z.string(),
   stock: z.coerce.number().int().nonnegative(),
-  images: z.array(z.string().url()).optional(),
+
+  images: z
+    .array(z.string())
+    .min(1, "At least one product image is required"),
 });
 
 export const updateProductSchema = z.object({

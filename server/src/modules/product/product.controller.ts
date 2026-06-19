@@ -5,7 +5,14 @@ import asyncHandler from "express-async-handler";
 const productService = new ProductService();
 
 export const createProduct = asyncHandler(async(req: Request, res: Response) => {
-    const result = await productService.createProduct(req.body);
+    const files = req.files as Express.Multer.File[];
+    const imagePaths = files.map((file) => file.path);
+    const productData = {
+        ...req.body,
+        images : imagePaths
+    }
+
+    const result = await productService.createProduct(productData);
     res.status(201).json({ success: true, data: result });
 });
 
