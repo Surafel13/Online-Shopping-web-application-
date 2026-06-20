@@ -1,17 +1,19 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
-import { Separator } from '../components/ui/separator';
-import { Heart, Trash2, ArrowLeft, ShieldCheck, RotateCcw, Truck, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Trash2, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 
-const CART_ITEMS = [
+const INITIAL_CART_ITEMS = [
   {
     id: '1',
     name: 'Aether Performance Tee',
     variant: 'Midnight Blue / Large',
     price: 65.00,
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop',
-    quantity: 1
+    quantity: 1,
+    isSale: false
   },
   {
     id: '2',
@@ -29,153 +31,259 @@ const CART_ITEMS = [
     variant: 'Cognac',
     price: 185.00,
     image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=200&auto=format&fit=crop',
-    quantity: 1
+    quantity: 1,
+    isSale: false
+  }
+];
+
+const RECOMMENDED_PRODUCTS = [
+  {
+    id: 'r1',
+    name: 'Urban Explorer Backpack',
+    price: 85,
+    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop',
+  },
+  {
+    id: 'r2',
+    name: 'Polarized Shield Sunglasses',
+    price: 120,
+    image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&auto=format&fit=crop',
+  },
+  {
+    id: 'r3',
+    name: 'Bamboo Fiber Crew Socks',
+    price: 24,
+    image: 'https://images.unsplash.com/photo-1582966772680-860e372bb558?w=500&auto=format&fit=crop',
+  },
+  {
+    id: 'r4',
+    name: 'Handcrafted Leather Belt',
+    price: 45,
+    image: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=500&auto=format&fit=crop',
   }
 ];
 
 export function Cart() {
+  const [items, setItems] = useState(INITIAL_CART_ITEMS);
+  const [promoCode, setPromoCode] = useState('');
+
+  const updateQuantity = (id: string, delta: number) => {
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }));
+  };
+
+  const removeItem = (id: string) => {
+    setItems(items.filter(item => item.id !== id));
+  };
+
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const tax = subtotal > 0 ? 39.92 : 0; // Mock fixed tax for visual match
+  const total = subtotal + tax;
+
   return (
     <PageTransition>
-      <div className="container px-4 py-8 max-w-screen-xl mx-auto">
-        <Link to="/collections" className="flex items-center text-sm text-muted-foreground hover:text-foreground mb-8">
+      <div className="container px-4 py-12 max-w-screen-xl mx-auto">
+        
+        {/* Top Navigation */}
+        <Link to="/collections" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-10 transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
         </Link>
 
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Cart Items */}
-          <div className="flex-1">
-            <div className="flex justify-between items-end mb-6 border-b pb-4">
-              <h1 className="text-3xl font-bold">Your Shopping Cart</h1>
-              <span className="text-muted-foreground">(3 items)</span>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              {CART_ITEMS.map((item) => (
-                <div key={item.id} className="flex gap-6 py-2">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-muted overflow-hidden flex-shrink-0 relative">
-                    {item.isSale && <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">Sale</span>}
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-base sm:text-lg">{item.name}</h3>
-                        <p className="text-sm text-muted-foreground">{item.variant}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-base sm:text-lg">${item.price.toFixed(2)}</div>
-                        {item.originalPrice && (
-                          <div className="text-sm text-muted-foreground line-through">${item.originalPrice.toFixed(2)}</div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-end mt-4">
-                      <div className="flex items-center border rounded-md h-9 w-28 shrink-0">
-                        <button className="px-3 py-1 hover:bg-muted text-muted-foreground">-</button>
-                        <span className="flex-1 text-center font-medium text-sm">{item.quantity}</span>
-                        <button className="px-3 py-1 hover:bg-muted text-muted-foreground">+</button>
-                      </div>
-                      
-                      <div className="flex gap-4">
-                        <button className="text-sm text-muted-foreground flex items-center hover:text-foreground">
-                          <Heart className="mr-1.5 h-4 w-4" /> <span className="hidden sm:inline">Save</span>
-                        </button>
-                        <button className="text-sm text-muted-foreground flex items-center hover:text-red-500">
-                          <Trash2 className="mr-1.5 h-4 w-4" /> <span className="hidden sm:inline">Remove</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Separator className="my-10" />
-
-            {/* Saved for Later */}
-            <div>
-              <h2 className="text-xl font-bold mb-6">Saved for later</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="flex gap-4 border rounded-lg p-3 min-w-[280px]">
-                    <img src="https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?q=80&w=100&auto=format&fit=crop" className="w-16 h-16 rounded-md object-cover bg-muted" alt="" />
-                    <div className="flex flex-col justify-center">
-                      <h4 className="text-sm font-medium line-clamp-1">Minimalist Wool Overcoat</h4>
-                      <span className="text-sm text-muted-foreground mb-2">$320.00</span>
-                      <button className="text-xs text-primary hover:underline self-start">Move to Cart</button>
-                    </div>
-                  </div>
-                ))}
+        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-16">
+          
+          {/* ── LEFT COLUMN: CART ITEMS ── */}
+          <div className="flex-1 min-w-0">
+            
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">Shopping Cart</h1>
+                <p className="text-muted-foreground text-sm">Review your items before checkout</p>
+              </div>
+              <div className="bg-muted px-4 py-1.5 rounded-full text-sm font-medium shrink-0 self-start sm:self-auto">
+                {items.length} {items.length === 1 ? 'Item' : 'Items'}
               </div>
             </div>
+
+            {/* Cart Items Container */}
+            <div className="border rounded-2xl bg-card p-6 shadow-sm mb-6">
+              <AnimatePresence initial={false}>
+                {items.length > 0 ? (
+                  <div className="flex flex-col gap-6">
+                    {items.map((item, index) => (
+                      <motion.div 
+                        key={item.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                        className={`flex flex-col sm:flex-row gap-6 ${index !== items.length - 1 ? 'border-b pb-6' : ''}`}
+                      >
+                        {/* Image */}
+                        <div className="w-full sm:w-32 h-32 rounded-xl bg-slate-50 dark:bg-slate-800/50 overflow-hidden shrink-0 relative border border-slate-100 dark:border-slate-700">
+                          {item.isSale && (
+                            <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                              Sale
+                            </span>
+                          )}
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover mix-blend-multiply p-1 hover:scale-105 transition-transform duration-500" />
+                        </div>
+                        
+                        {/* Details */}
+                        <div className="flex flex-1 flex-col sm:flex-row justify-between gap-4">
+                          <div className="flex flex-col justify-center">
+                            <h3 className="font-bold text-base sm:text-lg mb-1 text-foreground leading-tight">{item.name}</h3>
+                            <p className="text-sm text-muted-foreground">{item.variant}</p>
+                          </div>
+                          
+                          <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-4">
+                            <div className="text-right">
+                              <div className="font-bold text-lg">${item.price.toFixed(2)}</div>
+                              {item.originalPrice && (
+                                <div className="text-xs text-muted-foreground line-through">${item.originalPrice.toFixed(2)}</div>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-6">
+                              {/* Quantity Control */}
+                              <div className="flex items-center border rounded-lg h-9 overflow-hidden bg-background">
+                                <button onClick={() => updateQuantity(item.id, -1)} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">-</button>
+                                <span className="w-10 text-center font-semibold text-sm">{item.quantity}</span>
+                                <button onClick={() => updateQuantity(item.id, 1)} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">+</button>
+                              </div>
+                              
+                              {/* Remove Button */}
+                              <button 
+                                onClick={() => removeItem(item.id)}
+                                className="text-muted-foreground hover:text-red-500 transition-colors p-2"
+                                aria-label="Remove item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center">
+                    <p className="text-muted-foreground mb-4">Your cart is empty.</p>
+                    <Link to="/collections">
+                      <Button className="bg-blue-600 hover:bg-blue-700">Continue Shopping</Button>
+                    </Link>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Free Shipping Notice */}
+            {items.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pl-2">
+                <Truck className="h-4 w-4" /> You've earned free shipping!
+              </div>
+            )}
           </div>
 
-          {/* Order Summary Sidebar */}
-          <div className="w-full lg:w-[380px] shrink-0">
-            <div className="border rounded-xl p-6 bg-card sticky top-24 shadow-sm">
+          {/* ── RIGHT COLUMN: ORDER SUMMARY ── */}
+          <div className="w-full lg:w-[380px] shrink-0 space-y-4 sticky top-24">
+            
+            {/* Summary Card */}
+            <div className="border rounded-2xl p-6 sm:p-8 bg-card shadow-sm">
               <h2 className="text-xl font-bold mb-6">Order Summary</h2>
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">$499.00</span>
+                  <span className="text-muted-foreground font-medium">Subtotal</span>
+                  <span className="font-bold">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Estimated Shipping</span>
-                  <span className="font-medium">FREE</span>
+                  <span className="text-muted-foreground font-medium">Estimated Shipping</span>
+                  <span className="font-bold text-green-600">FREE</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Estimated Tax</span>
-                  <span className="font-medium">$39.92</span>
+                  <span className="text-muted-foreground font-medium">Estimated Tax</span>
+                  <span className="font-bold">${tax.toFixed(2)}</span>
                 </div>
               </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="flex justify-between items-end mb-6">
-                <span className="font-semibold">Estimated Total</span>
-                <span className="text-2xl font-bold text-blue-600">$538.92</span>
+
+              {/* Promo Code */}
+              <div className="flex gap-2 mb-6">
+                <input 
+                  type="text" 
+                  placeholder="Promo code" 
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="flex-1 h-11 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+                <Button variant="secondary" className="h-11 px-6 font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Apply</Button>
               </div>
               
-              <div className="mb-6">
-                <button className="flex justify-between items-center w-full text-sm font-medium py-2 text-left hover:text-primary">
-                  <span>Apply Promo Code</span>
-                  <span>+</span>
-                </button>
+              <div className="border-t pt-6 mb-8">
+                <div className="text-sm text-muted-foreground font-medium mb-1">Total Amount</div>
+                <div className="text-3xl font-bold text-foreground">${total.toFixed(2)}</div>
               </div>
               
-              <Link to="/checkout" className="w-full block">
-                <Button className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700">
-                  Checkout Now <ArrowRight className="ml-2 h-4 w-4" />
+              <Link to="/checkout" className="w-full block mb-6">
+                <Button className="w-full h-12 sm:h-14 text-base font-semibold bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all rounded-xl">
+                  Proceed to Checkout
                 </Button>
               </Link>
               
-              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Secure 256-bit SSL encrypted payment</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 font-medium text-slate-500 dark:text-slate-400">
+                  <ShieldCheck className="h-4 w-4" /> SECURE PAYMENT
+                </div>
+                <span className="text-[10px]">Protected by 256-bit SSL encryption</span>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-4 p-4 border rounded-xl bg-muted/20">
-              <div className="flex gap-3">
-                <Truck className="h-5 w-5 text-blue-600 shrink-0" />
-                <div>
-                  <h4 className="text-sm font-medium">Free Shipping</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">On all orders over $150.00</p>
-                </div>
+            {/* Trust Badges */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-card shadow-sm hover:shadow-md transition-shadow cursor-default">
+                <Truck className="h-5 w-5 text-blue-600" />
+                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Fast Delivery</span>
               </div>
-              <div className="flex gap-3">
-                <RotateCcw className="h-5 w-5 text-blue-600 shrink-0" />
-                <div>
-                  <h4 className="text-sm font-medium">Easy Returns</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">30-day no-hassle return policy</p>
-                </div>
+              <div className="border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-card shadow-sm hover:shadow-md transition-shadow cursor-default">
+                <RotateCcw className="h-5 w-5 text-blue-600" />
+                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Easy Returns</span>
               </div>
             </div>
+
           </div>
         </div>
+
+        {/* ── RECOMMENDED SECTION ── */}
+        <div className="mt-24 pt-12 border-t">
+          <div className="flex justify-between items-end mb-8">
+            <h2 className="text-2xl font-bold tracking-tight">You might also like</h2>
+            <Link to="/collections" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              View All
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {RECOMMENDED_PRODUCTS.map((product) => (
+              <Link key={product.id} to={`/product/${product.id}`} className="group block">
+                <div className="rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 mb-4 h-48 sm:h-64 relative border border-slate-100 dark:border-slate-700">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover p-2 hover:scale-105 transition-transform duration-500" 
+                  />
+                </div>
+                <h3 className="font-semibold text-sm sm:text-base leading-snug mb-1 group-hover:text-blue-600 transition-colors">{product.name}</h3>
+                <p className="font-bold text-sm">${product.price}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
       </div>
     </PageTransition>
   );

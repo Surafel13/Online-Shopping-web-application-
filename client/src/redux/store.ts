@@ -4,12 +4,15 @@ import cartReducer from './slices/cartSlice';
 import wishlistReducer from './slices/wishlistSlice';
 import productReducer from './slices/productSlice';
 
+import themeReducer from './slices/themeSlice';
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     cart: cartReducer,
     wishlist: wishlistReducer,
     product: productReducer,
+    theme: themeReducer,
   },
 });
 

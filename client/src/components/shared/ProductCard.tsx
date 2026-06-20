@@ -64,11 +64,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
           isHovered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
         )}>
           {!product.isOutOfStock ? (
-            <Button className="w-full bg-white text-black hover:bg-gray-100 shadow-md">
+            <Button className="w-full bg-white text-black hover:bg-gray-100 shadow-md dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700">
               <ShoppingCart className="mr-2 h-4 w-4" /> Quick Add
             </Button>
           ) : (
-            <Button disabled variant="secondary" className="w-full bg-white/80 text-black backdrop-blur-sm">
+            <Button disabled variant="secondary" className="w-full bg-white/80 text-black backdrop-blur-sm dark:bg-slate-800/80 dark:text-white">
               Out of Stock
             </Button>
           )}
@@ -76,7 +76,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Wishlist Button */}
         <button 
-          className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-600 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 hover:scale-110 shadow-sm"
+          className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-600 backdrop-blur-sm transition-all hover:bg-white hover:text-red-500 hover:scale-110 shadow-sm dark:bg-slate-800/80 dark:text-gray-300 dark:hover:bg-slate-800"
           aria-label="Add to wishlist"
         >
           <Heart className="h-4 w-4" />
@@ -90,7 +90,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             {[1, 2, 3, 4, 5].map((star) => (
               <svg 
                 key={star}
-                className={cn("h-3 w-3", star <= Math.round(product.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300")}
+                className={cn("h-3 w-3", star <= Math.round(product.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600")}
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 24 24"
               >
@@ -111,7 +111,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             {product.colors.map((color, idx) => (
               <div 
                 key={idx} 
-                className="h-3 w-3 rounded-full border border-gray-200" 
+                className="h-3 w-3 rounded-full border border-gray-200 dark:border-gray-700" 
                 style={{ backgroundColor: color }} 
                 title={color}
               />

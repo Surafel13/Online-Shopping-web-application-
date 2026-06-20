@@ -29,7 +29,7 @@ export function Checkout() {
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V15.33H7.898v-3.33h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562v1.876h2.773l-.443 3.33h-2.33v6.549C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
                 Apple Pay
               </Button>
-              <Button variant="outline" className="h-12 bg-white text-gray-700 hover:bg-gray-50 border-gray-300 shadow-sm">
+              <Button variant="outline" className="h-12 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600 shadow-sm">
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
                 Google Pay
               </Button>
@@ -54,7 +54,7 @@ export function Checkout() {
                   <Input type="email" placeholder="you@example.com" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="news" className="rounded border-gray-300" />
+                  <input type="checkbox" id="news" className="rounded border-gray-300 dark:border-slate-600 bg-background" />
                   <label htmlFor="news" className="text-sm">Email me with news and offers</label>
                 </div>
               </div>
@@ -113,9 +113,9 @@ export function Checkout() {
                 <h2 className="text-xl font-semibold">Shipping Method</h2>
               </div>
               <div className="pl-12 space-y-3">
-                <label className="flex items-center justify-between p-4 border rounded-lg border-blue-600 bg-blue-50/50 cursor-pointer">
+                <label className="flex items-center justify-between p-4 border rounded-lg border-blue-600 bg-blue-50/50 dark:bg-blue-900/20 cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" defaultChecked />
+                    <input type="radio" name="shipping" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600 bg-background" defaultChecked />
                     <div>
                       <div className="font-medium">Standard Shipping</div>
                       <div className="text-sm text-muted-foreground">3-5 Business Days</div>
@@ -125,7 +125,7 @@ export function Checkout() {
                 </label>
                 <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                    <input type="radio" name="shipping" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600 bg-background" />
                     <div>
                       <div className="font-medium">Express Delivery</div>
                       <div className="text-sm text-muted-foreground">1-2 Business Days</div>
@@ -143,12 +143,12 @@ export function Checkout() {
                 <h2 className="text-xl font-semibold">Payment Method</h2>
               </div>
               <div className="pl-12">
-                <div className="border rounded-lg p-4 bg-white shadow-sm space-y-4">
+                <div className="border rounded-lg p-4 bg-white dark:bg-slate-800 shadow-sm space-y-4">
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="font-medium">Credit Card</span>
                     <div className="flex gap-1">
-                      <div className="h-6 w-10 bg-gray-200 rounded shrink-0"></div>
-                      <div className="h-6 w-10 bg-gray-200 rounded shrink-0"></div>
+                      <div className="h-6 w-10 bg-gray-200 dark:bg-slate-700 rounded shrink-0"></div>
+                      <div className="h-6 w-10 bg-gray-200 dark:bg-slate-700 rounded shrink-0"></div>
                     </div>
                   </div>
                   <div>
@@ -183,7 +183,7 @@ export function Checkout() {
             <div className="space-y-4 mb-6">
               {[1, 2].map(i => (
                 <div key={i} className="flex gap-4 items-center">
-                  <div className="h-16 w-16 bg-white border rounded-md overflow-hidden shrink-0">
+                  <div className="h-16 w-16 bg-white dark:bg-slate-800 border rounded-md overflow-hidden shrink-0">
                     <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=100&auto=format&fit=crop" className="w-full h-full object-cover" alt="" />
                   </div>
                   <div className="flex-1">
@@ -198,7 +198,7 @@ export function Checkout() {
             <Separator className="my-6" />
 
             <div className="flex gap-2 mb-6">
-              <Input placeholder="Gift card or discount code" className="flex-1 bg-white" />
+              <Input placeholder="Gift card or discount code" className="flex-1 bg-white dark:bg-transparent" />
               <Button variant="secondary">Apply</Button>
             </div>
 
@@ -217,7 +217,7 @@ export function Checkout() {
               </div>
             </div>
 
-            <Separator className="my-4 border-gray-300" />
+            <Separator className="my-4 border-gray-300 dark:border-slate-700" />
 
             <div className="flex justify-between items-end mb-8">
               <span className="font-bold text-lg">Total</span>

@@ -1,26 +1,39 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { Header } from './components/layout/Header'
-import { Footer } from './components/layout/Footer'
-import { Home } from './pages/Home'
-import { Collections } from './pages/Collections'
-import { ProductDetail } from './pages/ProductDetail'
-import { Cart } from './pages/Cart'
-import { Checkout } from './pages/Checkout'
-import { Login } from './pages/Login'
-import { Register } from './pages/Register'
-import { Profile } from './pages/Profile'
-import { Orders } from './pages/Orders'
-import { Wishlist } from './pages/Wishlist'
-import { AdminLayout } from './components/layout/AdminLayout'
-import { AdminOverview } from './pages/admin/AdminOverview'
-import { AdminOrders } from './pages/admin/AdminOrders'
-import { AdminCustomers } from './pages/admin/AdminCustomers'
-import { AdminAnalytics } from './pages/admin/AdminAnalytics'
-import { AdminSettings } from './pages/admin/AdminSettings'
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from './redux/store';
+import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
+import { Home } from './pages/Home';
+import { Collections } from './pages/Collections';
+import { ProductDetail } from './pages/ProductDetail';
+import { Cart } from './pages/Cart';
+import { Checkout } from './pages/Checkout';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Profile } from './pages/Profile';
+import { Orders } from './pages/Orders';
+import { Wishlist } from './pages/Wishlist';
+import { AdminLayout } from './components/layout/AdminLayout';
+import { AdminOverview } from './pages/admin/AdminOverview';
+import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminCustomers } from './pages/admin/AdminCustomers';
+import { AdminAnalytics } from './pages/admin/AdminAnalytics';
+import { AdminSettings } from './pages/admin/AdminSettings';
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const theme = useSelector((state: RootState) => state.theme.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-foreground">
