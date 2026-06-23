@@ -1,34 +1,69 @@
+import { useEffect, useMemo, useState } from 'react';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Download, Calendar } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-
-const SALES_DATA = [
-  { name: 'Mon', online: 4000, retail: 2400 },
-  { name: 'Tue', online: 3000, retail: 1398 },
-  { name: 'Wed', online: 2000, retail: 9800 },
-  { name: 'Thu', online: 2780, retail: 3908 },
-  { name: 'Fri', online: 1890, retail: 4800 },
-  { name: 'Sat', online: 2390, retail: 3800 },
-  { name: 'Sun', online: 3490, retail: 4300 },
-];
-
-const GROWTH_DATA = [
-  { name: 'Jan', users: 400 },
-  { name: 'Feb', users: 800 },
-  { name: 'Mar', users: 1200 },
-  { name: 'Apr', users: 1800 },
-  { name: 'May', users: 2400 },
-  { name: 'Jun', users: 3100 },
-];
+import { AdminLoadingState } from '../../components/shared/AdminLoadingState';
+import { orderService } from '../../services';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../redux/store';
+import { showError } from '../../redux/slices/uiSlice';
+import { getApiErrorMessage } from '../../lib/errors';
+import type { ApiUser } from '../../types/api';
 
 const staggerVariants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { staggerChildren: 0.1, duration: 0.5 } }
+  show: { opacity: 1, y: 0, transition: { staggerChildren: 0.1, duration: 0.5 } },
 };
 
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export function AdminAnalytics() {
+  const dispatch = useDispatch<AppDispatch>();
+  const [orders, setOrders] = useState<Awaited<ReturnType<typeof orderService.getAll>>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    orderService.getAll()
+      .then(setOrders)
+      .catch((error) => dispatch(showError(getApiErrorMessage(error, 'Failed to load analytics.'))))
+      .finally(() => setIsLoading(false));
+  }, [dispatch]);
+
+  const salesData = useMemo(() => {
+    return DAYS.map((name, index) => ({
+      name,
+      online: orders
+        .filter((order) => order.createdAt && new Date(order.createdAt).getDay() === (index + 1) % 7)
+        .reduce((sum, order) => sum + order.totalAmount, 0),
+      retail: 0,
+    }));
+  }, [orders]);
+
+  const growthData = useMemo(() => {
+    const customerCounts = MONTHS.map((name) => ({ name, users: 0 }));
+    const seen = new Set<string>();
+
+    orders.forEach((order) => {
+      if (!order.createdAt) return;
+      const user = typeof order.userId === 'object' ? (order.userId as ApiUser) : null;
+      if (!user) return;
+      const monthIndex = new Date(order.createdAt).getMonth();
+      if (!seen.has(user._id)) {
+        seen.add(user._id);
+        customerCounts[monthIndex].users += 1;
+      }
+    });
+
+    let cumulative = 0;
+    return customerCounts.map((entry) => {
+      cumulative += entry.users;
+      return { name: entry.name, users: cumulative };
+    });
+  }, [orders]);
+
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto space-y-6 pb-12">
@@ -43,9 +78,10 @@ export function AdminAnalytics() {
           </div>
         </div>
 
+        {isLoading ? (
+          <AdminLoadingState message="Loading analytics..." />
+        ) : (
         <motion.div variants={staggerVariants} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Sales Trends Bar Chart */}
           <motion.div variants={staggerVariants} className="bg-card border rounded-xl shadow-sm p-6 flex flex-col h-[400px]">
             <div className="mb-6">
               <h3 className="text-lg font-semibold tracking-tight">Sales Trends</h3>
@@ -53,7 +89,7 @@ export function AdminAnalytics() {
             </div>
             <div className="flex-1 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={SALES_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={salesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(val) => `$${val/1000}k`} />
@@ -65,7 +101,6 @@ export function AdminAnalytics() {
             </div>
           </motion.div>
 
-          {/* Customer Growth Area Chart */}
           <motion.div variants={staggerVariants} className="bg-card border rounded-xl shadow-sm p-6 flex flex-col h-[400px]">
             <div className="mb-6">
               <h3 className="text-lg font-semibold tracking-tight">Customer Growth</h3>
@@ -73,7 +108,7 @@ export function AdminAnalytics() {
             </div>
             <div className="flex-1 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={GROWTH_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -89,8 +124,8 @@ export function AdminAnalytics() {
               </ResponsiveContainer>
             </div>
           </motion.div>
-
         </motion.div>
+        )}
       </div>
     </PageTransition>
   );

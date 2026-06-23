@@ -1,13 +1,20 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, ShoppingBag, Users, BarChart3, Settings, LogOut, ChevronRight
+  LayoutDashboard, ShoppingBag, Users, BarChart3, Settings, LogOut, ChevronRight, Package, Tags
 } from 'lucide-react';
 import gsap from 'gsap';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../redux/store';
+import { logout } from '../../redux/slices/authSlice';
+import { clearCartState } from '../../redux/slices/cartSlice';
+import { clearWishlistState } from '../../redux/slices/wishlistSlice';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', path: '/admin/overview', icon: LayoutDashboard },
+  { name: 'Products', path: '/admin/products', icon: Package },
+  { name: 'Categories', path: '/admin/categories', icon: Tags },
   { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
   { name: 'Customers', path: '/admin/customers', icon: Users },
   { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
@@ -16,6 +23,15 @@ const NAV_ITEMS = [
 
 export function AdminSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(clearCartState());
+    dispatch(clearWishlistState());
+    navigate('/login');
+  };
 
   useEffect(() => {
     gsap.fromTo(
@@ -59,7 +75,7 @@ export function AdminSidebar() {
       </div>
 
       <div className="p-4 border-t mt-auto">
-        <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors">
+        <button onClick={handleLogout} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors">
           <LogOut className="h-4 w-4" />
           Logout
         </button>

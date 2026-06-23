@@ -2,10 +2,29 @@ import { AppError } from "../../utils/appError.utils.js";
 import { UserProfileRepository } from "./user.repo.js";
 import { Types } from "mongoose";
 import type { IAddress } from "../../interface/user.interface.js";
-import { updateProfileSchema } from "./user.validation.js";
+import { adminUpdateUserSchema, updateProfileSchema } from "./user.validation.js";
 
 export class UserProfileService {
   private userProfileRepo = new UserProfileRepository();
+
+  async getAllUsers() {
+    return await this.userProfileRepo.getAllUsers();
+  }
+
+  async updateUserByAdmin(userId: string, userData: unknown) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid Object Id", 400);
+    }
+
+    const parsedData = adminUpdateUserSchema.parse(userData);
+    const result = await this.userProfileRepo.updateProfile(userId, parsedData);
+
+    if (!result) {
+      throw new AppError("Account not found", 404);
+    }
+
+    return result;
+  }
 
   async getUserProfile(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {

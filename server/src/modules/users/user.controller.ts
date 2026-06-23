@@ -4,6 +4,25 @@ import asyncHandler from "express-async-handler";
 
 const userProfileService = new UserProfileService();
 
+export const getAllUsers = asyncHandler(async (_req: Request, res: Response) => {
+  const users = await userProfileService.getAllUsers();
+
+  res.status(200).json({
+    success: true,
+    users,
+  });
+});
+
+export const updateUserByAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.params.userId as string;
+  const user = await userProfileService.updateUserByAdmin(userId, req.body);
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
+
 // GET PROFILE
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user.id as string;

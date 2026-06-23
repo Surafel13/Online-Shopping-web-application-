@@ -1,29 +1,34 @@
+import { useEffect, useMemo, useState } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion } from 'framer-motion';
+import { orderService } from '../../services';
 
-const data = [
-  { name: 'Jan', revenue: 4000 },
-  { name: 'Feb', revenue: 3000 },
-  { name: 'Mar', revenue: 2000 },
-  { name: 'Apr', revenue: 2780 },
-  { name: 'May', revenue: 1890 },
-  { name: 'Jun', revenue: 2390 },
-  { name: 'Jul', revenue: 3490 },
-  { name: 'Aug', revenue: 4000 },
-  { name: 'Sep', revenue: 5200 },
-  { name: 'Oct', revenue: 4800 },
-  { name: 'Nov', revenue: 6100 },
-  { name: 'Dec', revenue: 7500 },
-];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function AdminRevenueChart() {
+  const [orders, setOrders] = useState<Awaited<ReturnType<typeof orderService.getAll>>>([]);
+
+  useEffect(() => {
+    orderService.getAll().then(setOrders);
+  }, []);
+
+  const data = useMemo(() => {
+    const totals = MONTHS.map((name) => ({ name, revenue: 0 }));
+    orders.forEach((order) => {
+      if (!order.createdAt) return;
+      const monthIndex = new Date(order.createdAt).getMonth();
+      totals[monthIndex].revenue += order.totalAmount;
+    });
+    return totals;
+  }, [orders]);
+
   const formatYAxis = (tickItem: number) => `$${tickItem / 1000}k`;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
       className="w-full h-[350px] bg-card rounded-xl border p-6 shadow-sm flex flex-col"
     >
       <div className="mb-6 flex justify-between items-center">
@@ -47,31 +52,31 @@ export function AdminRevenueChart() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="name" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 12, fill: '#6b7280' }} 
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
               dy={10}
             />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 12, fill: '#6b7280' }} 
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
               tickFormatter={formatYAxis}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               itemStyle={{ color: '#111827', fontWeight: 600 }}
-              formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
+              formatter={(value) => [`$${Number(value ?? 0).toLocaleString()}`, 'Revenue']}
             />
-            <Area 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#2563eb" 
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#2563eb"
               strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorRev)" 
+              fillOpacity={1}
+              fill="url(#colorRev)"
               animationDuration={1500}
               animationEasing="ease-out"
             />

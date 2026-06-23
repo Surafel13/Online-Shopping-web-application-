@@ -1,6 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../redux/slices/authSlice';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearAuthError } from '../redux/slices/authSlice';
+import type { AppDispatch, RootState } from '../redux/store';
+import { getPostAuthRedirect } from '../lib/authRedirect';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,17 +11,28 @@ import { Separator } from '../components/ui/separator';
 import { ArrowLeft, ShieldCheck, Lock, Globe } from 'lucide-react';
 
 export function Login() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isLoading, error, isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const from = (location.state as { from?: string } | null)?.from;
+      navigate(getPostAuthRedirect(user, from), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location.state]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(loginSuccess({
-      id: '123',
-      name: 'Alex Johnson',
-      email: 'alex.johnson@example.com',
-    }));
-    navigate('/');
+    dispatch(clearAuthError());
+    const result = await dispatch(loginUser({ email, password }));
+    if (loginUser.fulfilled.match(result)) {
+      const from = (location.state as { from?: string } | null)?.from;
+      navigate(getPostAuthRedirect(result.payload.user, from));
+    }
   };
 
   return (
@@ -40,6 +54,12 @@ export function Login() {
           <p className="text-muted-foreground mb-8 text-center">Please enter your details to sign in to your account.</p>
 
           <form onSubmit={handleLogin} className="w-full bg-card border rounded-xl shadow-sm p-6 sm:p-8">
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 mb-6">
               <Button type="button" variant="outline" className="w-full">
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
@@ -60,7 +80,7 @@ export function Login() {
             <div className="space-y-4 mb-6">
               <div>
                 <label className="text-sm font-medium mb-1.5 block text-left">Email Address</label>
-                <Input type="email" placeholder="name@company.com" required />
+                <Input type="email" placeholder="name@company.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
@@ -68,7 +88,7 @@ export function Login() {
                   <a href="#" className="text-xs text-blue-600 hover:underline">Forgot password?</a>
                 </div>
                 <div className="relative">
-                  <Input type="password" placeholder="••••••••" required />
+                  <Input type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} />
                   <button type="button" className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
@@ -81,8 +101,8 @@ export function Login() {
               <label htmlFor="keep" className="text-sm">Keep me signed in for 30 days</label>
             </div>
 
-            <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-base shadow-md">
-              Sign In
+            <Button type="submit" disabled={isLoading} className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-base shadow-md">
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
             
             <div className="mt-6 text-center text-sm border-t pt-6">

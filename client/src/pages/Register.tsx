@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../redux/slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearAuthError } from '../redux/slices/authSlice';
+import type { AppDispatch, RootState } from '../redux/store';
+import { getPostAuthRedirect } from '../lib/authRedirect';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,17 +11,26 @@ import { Separator } from '../components/ui/separator';
 import { ShieldCheck } from 'lucide-react';
 
 export function Register() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(getPostAuthRedirect(user), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(loginSuccess({
-      id: '123',
-      name: 'Alex Johnson',
-      email: 'alex.johnson@example.com',
-    }));
-    navigate('/');
+    dispatch(clearAuthError());
+    const result = await dispatch(registerUser({ username, email, password }));
+    if (registerUser.fulfilled.match(result)) {
+      navigate(getPostAuthRedirect(result.payload.user));
+    }
   };
 
   return (
@@ -37,6 +49,12 @@ export function Register() {
               <h1 className="text-2xl font-bold mb-2">Create an account</h1>
               <p className="text-sm text-muted-foreground text-center">Join thousands of shoppers for a premium experience.</p>
             </div>
+
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <Button type="button" variant="outline" className="w-full text-sm">
@@ -60,21 +78,21 @@ export function Register() {
                 <label className="text-sm font-medium mb-1.5 block text-left">Full Name</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-muted-foreground"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></span>
-                  <Input className="pl-9" placeholder="Alex Johnson" required />
+                  <Input className="pl-9" placeholder="Alex Johnson" required value={username} onChange={(e) => setUsername(e.target.value)} />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block text-left">Email Address</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-muted-foreground"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></span>
-                  <Input type="email" className="pl-9" placeholder="alex@example.com" required />
+                  <Input type="email" className="pl-9" placeholder="alex@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block text-left">Password</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-muted-foreground"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>
-                  <Input type="password" className="pl-9" placeholder="••••••••" required />
+                  <Input type="password" className="pl-9" placeholder="••••••••" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
                   <button type="button" className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
@@ -91,8 +109,8 @@ export function Register() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-base shadow-md">
-              Create Account <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            <Button type="submit" disabled={isLoading} className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-base shadow-md">
+              {isLoading ? 'Creating Account...' : 'Create Account'} <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </Button>
             
             <div className="mt-6 text-center text-sm border-t pt-6">
@@ -105,7 +123,6 @@ export function Register() {
             </div>
           </form>
           
-          {/* Background decorative elements */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-blue-50 dark:from-blue-900/20 to-transparent -z-10 rounded-full blur-3xl opacity-50"></div>
         </div>
 

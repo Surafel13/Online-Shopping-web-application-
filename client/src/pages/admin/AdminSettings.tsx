@@ -1,11 +1,41 @@
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
 import { Store, User, Lock, BellRing } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { profileService } from '../../services';
+import type { AppDispatch, RootState } from '../../redux/store';
+import { updateAuthUser } from '../../redux/slices/authSlice';
+import { showError, showSuccess } from '../../redux/slices/uiSlice';
+import { getApiErrorMessage } from '../../lib/errors';
 
 export function AdminSettings() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [username, setUsername] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [storeName, setStoreName] = useState('Nexa Commerce');
+
+  useEffect(() => {
+    profileService.getProfile().then((profile) => {
+      setUsername(profile.username);
+      setEmail(profile.email);
+    });
+  }, []);
+
+  const handleSaveProfile = async () => {
+    try {
+      const profile = await profileService.updateProfile({ username, email });
+      dispatch(updateAuthUser({ name: profile.username, email: profile.email }));
+      dispatch(showSuccess('Profile updated successfully.'));
+    } catch (error) {
+      dispatch(showError(getApiErrorMessage(error, 'Failed to update profile.')));
+    }
+  };
+
   return (
     <PageTransition>
       <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -29,13 +59,13 @@ export function AdminSettings() {
                 <div className="space-y-4 max-w-md">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Full Name</label>
-                    <Input defaultValue="Admin User" />
+                    <Input value={username} onChange={(e) => setUsername(e.target.value)} />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Email Address</label>
-                    <Input defaultValue="admin@nexacommerce.com" />
+                    <Input value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
-                  <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">Save Changes</Button>
+                  <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSaveProfile}>Save Changes</Button>
                 </div>
               </div>
             </TabsContent>
@@ -46,7 +76,7 @@ export function AdminSettings() {
                 <div className="space-y-4 max-w-md">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Store Name</label>
-                    <Input defaultValue="Nexa Commerce" />
+                    <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Currency</label>
@@ -56,7 +86,7 @@ export function AdminSettings() {
                       <option>GBP (£)</option>
                     </select>
                   </div>
-                  <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">Update Store</Button>
+                  <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white" onClick={() => dispatch(showSuccess('Store settings saved locally.'))}>Update Store</Button>
                 </div>
               </div>
             </TabsContent>
@@ -85,21 +115,13 @@ export function AdminSettings() {
             <TabsContent value="notifications" className="mt-0">
               <div className="bg-card border rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
-                <div className="space-y-4 max-w-md">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">New Orders</p>
-                      <p className="text-sm text-muted-foreground">Get notified when a new order is placed.</p>
-                    </div>
-                    <input type="checkbox" defaultChecked className="h-5 w-5 accent-blue-600" />
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Low Stock Alerts</p>
-                      <p className="text-sm text-muted-foreground">Get notified when inventory is running low.</p>
-                    </div>
-                    <input type="checkbox" defaultChecked className="h-5 w-5 accent-blue-600" />
-                  </div>
+                <div className="space-y-4">
+                  {['New order alerts', 'Low stock warnings', 'Customer messages', 'Weekly performance reports'].map((item) => (
+                    <label key={item} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <span className="text-sm font-medium">{item}</span>
+                      <input type="checkbox" defaultChecked className="rounded border-gray-300" />
+                    </label>
+                  ))}
                 </div>
               </div>
             </TabsContent>

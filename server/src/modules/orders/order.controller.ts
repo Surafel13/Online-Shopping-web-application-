@@ -5,7 +5,7 @@ import { OrderService } from "./order.service.js";
 const orderService = new OrderService();
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.userId;
+  const userId = req.user.id as string;
 
   const { addressId, paymentMethod } = req.body;
 
@@ -36,7 +36,7 @@ export const getOrderById = asyncHandler(
 
 export const getUserOrders = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.userId;
+    const userId = req.user.id as string;
 
     const orders = await orderService.getUserOrders(userId);
 
@@ -88,5 +88,14 @@ export const deleteOrder = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Order deleted successfully",
+  });
+});
+
+export const getAllOrders = asyncHandler(async (_req: Request, res: Response) => {
+  const orders = await orderService.getAllOrders();
+
+  res.status(200).json({
+    success: true,
+    orders,
   });
 });

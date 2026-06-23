@@ -1,26 +1,23 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, MoreHorizontal, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-
-const ORDERS = [
-  { id: 'ORD-9302', customer: 'Emma Watson', product: 'Minimalist Overcoat', amount: 320.00, status: 'Completed', date: 'Today, 10:42 AM' },
-  { id: 'ORD-9301', customer: 'Liam Thorne', product: 'Hybrid Backpack', amount: 185.00, status: 'Processing', date: 'Today, 09:15 AM' },
-  { id: 'ORD-9300', customer: 'Sophia Chen', product: 'Merino Wool Sweater', amount: 145.00, status: 'Pending', date: 'Yesterday' },
-  { id: 'ORD-9299', customer: 'Noah Patel', product: 'Leather Wallet', amount: 65.00, status: 'Completed', date: 'Yesterday' },
-  { id: 'ORD-9298', customer: 'Isabella Kim', product: 'Canvas Sneakers', amount: 110.00, status: 'Cancelled', date: 'Oct 12' },
-];
+import { orderService } from '../../services';
+import { formatOrderDate, getProductFromRef } from '../../lib/mappers';
+import type { ApiOrder, ApiUser } from '../../types/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
+    transition: { staggerChildren: 0.1 },
+  },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } },
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -38,7 +35,40 @@ const StatusBadge = ({ status }: { status: string }) => {
   }
 };
 
+function mapAdminStatus(status: ApiOrder['orderStatus']) {
+  switch (status) {
+    case 'delivered': return 'Completed';
+    case 'processing': return 'Processing';
+    case 'shipped': return 'Processing';
+    case 'cancelled': return 'Cancelled';
+    default: return 'Pending';
+  }
+}
+
+function mapOrderRow(order: ApiOrder) {
+  const user = typeof order.userId === 'object' ? (order.userId as ApiUser) : null;
+  const firstItem = order.items[0];
+  const product = firstItem ? getProductFromRef(firstItem.productId) : null;
+
+  return {
+    id: `ORD-${order._id.slice(-4).toUpperCase()}`,
+    customer: user?.username || 'Customer',
+    product: product?.name || 'Order items',
+    amount: order.totalAmount,
+    status: mapAdminStatus(order.orderStatus),
+    date: formatOrderDate(order.createdAt),
+  };
+}
+
 export function AdminRecentOrders() {
+  const [orders, setOrders] = useState<ReturnType<typeof mapOrderRow>[]>([]);
+
+  useEffect(() => {
+    orderService.getAll().then((data) => {
+      setOrders(data.slice(0, 5).map(mapOrderRow));
+    });
+  }, []);
+
   return (
     <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
       <div className="p-6 border-b flex justify-between items-center bg-muted/10">
@@ -46,7 +76,9 @@ export function AdminRecentOrders() {
           <h3 className="text-lg font-semibold tracking-tight">Recent Transactions</h3>
           <p className="text-sm text-muted-foreground mt-0.5">Your latest sales across all channels.</p>
         </div>
-        <Button variant="outline" size="sm" className="h-8">View All</Button>
+        <Link to="/admin/orders">
+          <Button variant="outline" size="sm" className="h-8">View All</Button>
+        </Link>
       </div>
 
       <div className="overflow-x-auto">
@@ -61,15 +93,15 @@ export function AdminRecentOrders() {
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <motion.tbody 
+          <motion.tbody
             variants={containerVariants}
             initial="hidden"
             animate="show"
             className="divide-y bg-card"
           >
-            {ORDERS.map((order) => (
-              <motion.tr 
-                key={order.id} 
+            {orders.map((order) => (
+              <motion.tr
+                key={order.id}
                 variants={itemVariants}
                 className="hover:bg-muted/40 transition-colors group"
               >

@@ -1,88 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, Trash2, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
-
-const INITIAL_CART_ITEMS = [
-  {
-    id: '1',
-    name: 'Aether Performance Tee',
-    variant: 'Midnight Blue / Large',
-    price: 65.00,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop',
-    quantity: 1,
-    isSale: false
-  },
-  {
-    id: '2',
-    name: 'Precision Chronograph Watch',
-    variant: 'Brushed Steel',
-    price: 249.00,
-    originalPrice: 299.00,
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=200&auto=format&fit=crop',
-    quantity: 1,
-    isSale: true
-  },
-  {
-    id: '3',
-    name: 'Vanguard Leather Weekender',
-    variant: 'Cognac',
-    price: 185.00,
-    image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=200&auto=format&fit=crop',
-    quantity: 1,
-    isSale: false
-  }
-];
-
-const RECOMMENDED_PRODUCTS = [
-  {
-    id: 'r1',
-    name: 'Urban Explorer Backpack',
-    price: 85,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop',
-  },
-  {
-    id: 'r2',
-    name: 'Polarized Shield Sunglasses',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&auto=format&fit=crop',
-  },
-  {
-    id: 'r3',
-    name: 'Bamboo Fiber Crew Socks',
-    price: 24,
-    image: 'https://images.unsplash.com/photo-1582966772680-860e372bb558?w=500&auto=format&fit=crop',
-  },
-  {
-    id: 'r4',
-    name: 'Handcrafted Leather Belt',
-    price: 45,
-    image: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=500&auto=format&fit=crop',
-  }
-];
+import type { AppDispatch, RootState } from '../redux/store';
+import { fetchCart, removeFromCartAsync, updateCartQuantityAsync } from '../redux/slices/cartSlice';
+import { productService } from '../services';
+import { buildCategoryMap, mapApiProductToProductType } from '../lib/mappers';
+import { categoryService } from '../services';
+import type { ProductType } from '../components/shared/ProductCard';
 
 export function Cart() {
-  const [items, setItems] = useState(INITIAL_CART_ITEMS);
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, isLoading } = useSelector((state: RootState) => state.cart);
   const [promoCode, setPromoCode] = useState('');
+  const [recommendedProducts, setRecommendedProducts] = useState<ProductType[]>([]);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+
+  useEffect(() => {
+    async function loadRecommended() {
+      const [products, categories] = await Promise.all([
+        productService.getAll(),
+        categoryService.getAll(),
+      ]);
+      const categoryMap = buildCategoryMap(categories);
+      setRecommendedProducts(products.slice(0, 4).map((product) => mapApiProductToProductType(product, categoryMap)));
+    }
+
+    loadRecommended();
+  }, []);
 
   const updateQuantity = (id: string, delta: number) => {
-    setItems(items.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
-      }
-      return item;
-    }));
+    const item = items.find((entry) => entry.id === id);
+    if (!item) return;
+    dispatch(updateCartQuantityAsync({ productId: id, quantity: Math.max(1, item.quantity + delta) }));
   };
 
   const removeItem = (id: string) => {
-    setItems(items.filter(item => item.id !== id));
+    dispatch(removeFromCartAsync(id));
   };
 
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal > 0 ? 39.92 : 0; // Mock fixed tax for visual match
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const tax = subtotal > 0 ? subtotal * 0.08 : 0;
   const total = subtotal + tax;
 
   return (
@@ -112,6 +76,9 @@ export function Cart() {
 
             {/* Cart Items Container */}
             <div className="border rounded-2xl bg-card p-6 shadow-sm mb-6">
+              {isLoading && items.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">Loading cart...</div>
+              ) : (
               <AnimatePresence initial={false}>
                 {items.length > 0 ? (
                   <div className="flex flex-col gap-6">
@@ -126,7 +93,7 @@ export function Cart() {
                       >
                         {/* Image */}
                         <div className="w-full sm:w-32 h-32 rounded-xl bg-slate-50 dark:bg-slate-800/50 overflow-hidden shrink-0 relative border border-slate-100 dark:border-slate-700">
-                          {item.isSale && (
+                          {item.originalPrice && item.originalPrice > item.price && (
                             <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                               Sale
                             </span>
@@ -180,6 +147,7 @@ export function Cart() {
                   </div>
                 )}
               </AnimatePresence>
+              )}
             </div>
 
             {/* Free Shipping Notice */}
@@ -268,7 +236,7 @@ export function Cart() {
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {RECOMMENDED_PRODUCTS.map((product) => (
+            {recommendedProducts.map((product) => (
               <Link key={product.id} to={`/product/${product.id}`} className="group block">
                 <div className="rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 mb-4 h-48 sm:h-64 relative border border-slate-100 dark:border-slate-700">
                   <img 

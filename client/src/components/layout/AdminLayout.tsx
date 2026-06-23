@@ -1,9 +1,13 @@
 import { Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { AdminSidebar } from '../../features/admin/AdminSidebar';
 import { Search, Bell } from 'lucide-react';
 import { Input } from '../ui/input';
+import type { RootState } from '../../redux/store';
 
 export function AdminLayout() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const initial = user?.name?.charAt(0)?.toUpperCase() || 'A';
   return (
     <div className="flex h-screen bg-muted/10 overflow-hidden w-full">
       <AdminSidebar />
@@ -21,7 +25,7 @@ export function AdminLayout() {
               <span className="absolute top-1.5 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-background"></span>
             </button>
             <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity">
-              A
+              {initial}
             </div>
           </div>
         </header>

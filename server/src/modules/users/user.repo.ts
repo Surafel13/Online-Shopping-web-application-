@@ -2,6 +2,10 @@ import Users from "../../database/users.model.js";
 import type { IAddress } from "../../interface/user.interface.js";
 
 export class UserProfileRepository {
+  async getAllUsers() {
+    return await Users.find().select("-password").sort({ createdAt: -1 });
+  }
+
   async getProfile(userId: string) {
     return await Users.findById(userId).select("-password");
   }

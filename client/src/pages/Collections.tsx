@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
@@ -7,6 +7,8 @@ import {
   Search, SlidersHorizontal, LayoutGrid, List,
   Star, ChevronRight, Heart, ShoppingCart, X, SlidersVertical
 } from 'lucide-react';
+import { productService, categoryService } from '../services';
+import { buildCategoryMap, mapApiProductToProductType } from '../lib/mappers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -26,23 +28,6 @@ interface Product {
 type SortKey = 'newest' | 'price_asc' | 'price_desc' | 'rating' | 'popular';
 type ViewMode = 'grid' | 'list';
 
-// ─── Mock Products ─────────────────────────────────────────────────────────────
-const ALL_PRODUCTS: Product[] = [
-  { id: '1',  name: 'Premium Cashmere Crewneck',         price: 189, originalPrice: 245, image: 'https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?w=600&auto=format&fit=crop', category: 'Fashion',      rating: 4.8, reviews: 124, isNew: true,  inStock: true  },
-  { id: '2',  name: 'Architectural Leather Tote',        price: 450,                     image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=600&auto=format&fit=crop', category: 'Accessories',  rating: 4.9, reviews: 86,                inStock: true  },
-  { id: '3',  name: 'Minimalist Ceramic Desk Lamp',      price: 120, originalPrice: 150, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop', category: 'Home & Living',rating: 4.7, reviews: 42,  isOnSale: true, inStock: true  },
-  { id: '4',  name: 'Performance Merino Tee',            price: 75,                      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&auto=format&fit=crop', category: 'Fashion',      rating: 4.6, reviews: 215, isNew: true,  inStock: true  },
-  { id: '5',  name: 'Carbon Fibre Hybrid Smartwatch',    price: 890,                     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop', category: 'Electronics',  rating: 4.9, reviews: 12,                inStock: true  },
-  { id: '6',  name: 'Organic Cotton Relaxed Chinos',     price: 95,  originalPrice: 120, image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&auto=format&fit=crop', category: 'Fashion',      rating: 4.5, reviews: 98,  isOnSale: true, inStock: true  },
-  { id: '7',  name: 'Wireless Noise-Cancel Headphones',  price: 349,                     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop', category: 'Electronics',  rating: 4.7, reviews: 203,               inStock: true  },
-  { id: '8',  name: 'Linen Wide-Leg Trousers',           price: 110,                     image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&auto=format&fit=crop', category: 'Fashion',      rating: 4.4, reviews: 55,                inStock: false },
-  { id: '9',  name: 'Bamboo Serving Board Set',          price: 65,                      image: 'https://images.unsplash.com/photo-1612170153139-6f881ff067e0?w=600&auto=format&fit=crop', category: 'Home & Living',rating: 4.6, reviews: 31,  isNew: true,  inStock: true  },
-  { id: '10', name: 'Slim Titanium Card Wallet',         price: 85,                      image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop', category: 'Accessories',  rating: 4.8, reviews: 67,                inStock: true  },
-  { id: '11', name: 'Smart Air Purifier Pro',            price: 299, originalPrice: 380, image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&auto=format&fit=crop', category: 'Electronics',  rating: 4.5, reviews: 89,  isOnSale: true, inStock: true  },
-  { id: '12', name: 'Merino Wool Scarf',                 price: 59,                      image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=600&auto=format&fit=crop', category: 'Accessories',  rating: 4.3, reviews: 44,                inStock: true  },
-];
-
-const CATEGORIES = ['All Products', 'Electronics', 'Fashion', 'Home & Living', 'Accessories'];
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'newest',    label: 'Newest Arrivals' },
   { value: 'popular',  label: 'Most Popular'    },
@@ -214,8 +199,12 @@ const FilterSection = ({ title, children }: { title: string; children: React.Rea
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export function Collections() {
+  const [searchParams] = useSearchParams();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(['All Products']);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [search, setSearch]               = useState('');
-  const [category, setCategory]           = useState('All Products');
+  const [category, setCategory]           = useState(searchParams.get('category') || 'All Products');
   const [sort, setSort]                   = useState<SortKey>('newest');
   const [viewMode, setViewMode]           = useState<ViewMode>('grid');
   const [priceRange, setPriceRange]       = useState<[number, number]>([0, 2000]);
@@ -225,6 +214,41 @@ export function Collections() {
   const [minRating, setMinRating]         = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering]     = useState(false);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const [products, categories] = await Promise.all([
+          productService.getAll(),
+          categoryService.getAll(),
+        ]);
+        const categoryMap = buildCategoryMap(categories);
+        setCategoryOptions(['All Products', ...categories.map((entry) => entry.name)]);
+        setAllProducts(
+          products.map((product) => {
+            const mapped = mapApiProductToProductType(product, categoryMap);
+            return {
+              id: mapped.id,
+              name: mapped.name,
+              price: mapped.price,
+              originalPrice: mapped.originalPrice,
+              image: mapped.image,
+              category: mapped.category,
+              rating: mapped.rating,
+              reviews: mapped.reviews,
+              isNew: mapped.isNew,
+              isOnSale: Boolean(mapped.originalPrice),
+              inStock: !mapped.isOutOfStock,
+            };
+          }),
+        );
+      } finally {
+        setIsPageLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
 
   const triggerFilter = useCallback((fn: () => void) => {
     setIsFiltering(true);
@@ -238,7 +262,7 @@ export function Collections() {
   };
 
   const filtered = useMemo(() => {
-    let result = ALL_PRODUCTS
+    let result = allProducts
       .filter(p => category === 'All Products' || p.category === category)
       .filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
       .filter(p => p.price >= priceRange[0] && p.price <= priceRange[1])
@@ -255,7 +279,7 @@ export function Collections() {
       default: break;
     }
     return result;
-  }, [search, category, sort, priceRange, inStockOnly, onSaleOnly, newOnly, minRating]);
+  }, [allProducts, search, category, sort, priceRange, inStockOnly, onSaleOnly, newOnly, minRating]);
 
   const activeFiltersCount = [
     category !== 'All Products', inStockOnly, onSaleOnly, newOnly,
@@ -267,7 +291,7 @@ export function Collections() {
     <div className="space-y-6">
       <FilterSection title="Categories">
         <ul className="space-y-2">
-          {CATEGORIES.map(cat => (
+          {categoryOptions.map(cat => (
             <li key={cat}>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <span className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-colors ${category === cat ? 'border-blue-600' : 'border-slate-300 dark:border-slate-600 group-hover:border-slate-400 dark:group-hover:border-slate-500'}`}>
@@ -469,7 +493,7 @@ export function Collections() {
 
             {/* Grid / List */}
             <AnimatePresence mode="wait">
-              {isFiltering ? (
+              {isPageLoading || isFiltering ? (
                 <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5' : 'flex flex-col gap-4'}>
                   {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}

@@ -2,15 +2,24 @@ import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, LogOut, Sun, Moon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from '../../redux/store';
+import type { RootState, AppDispatch } from '../../redux/store';
 import { logout } from '../../redux/slices/authSlice';
+import { clearCartState } from '../../redux/slices/cartSlice';
+import { clearWishlistState } from '../../redux/slices/wishlistSlice';
 import { toggleTheme } from '../../redux/slices/themeSlice';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 export function Header() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { totalItems } = useSelector((state: RootState) => state.cart);
   const theme = useSelector((state: RootState) => state.theme.theme);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(clearCartState());
+    dispatch(clearWishlistState());
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -27,6 +36,11 @@ export function Header() {
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground/60">Home</Link>
             <Link to="/collections" className="transition-colors hover:text-foreground/80 text-foreground/60">Shop All</Link>
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link to="/admin/overview" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                Admin
+              </Link>
+            )}
             {isAuthenticated && (
               <>
                 <Link to="/orders" className="transition-colors hover:text-foreground/80 text-foreground/60">My Orders</Link>
@@ -61,7 +75,11 @@ export function Header() {
                 <Link to="/cart">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <ShoppingCart className="h-4 w-4" />
-                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
+                    {totalItems > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                        {totalItems}
+                      </span>
+                    )}
                     <span className="sr-only">Cart</span>
                   </Button>
                 </Link>
@@ -96,7 +114,7 @@ export function Header() {
                       <Link to="/profile" className="cursor-pointer flex w-full items-center py-2"><User className="mr-2 h-4 w-4" /> Profile Info</Link>
                     </DropdownMenuItem>
                     <div className="h-px bg-border my-1" />
-                    <DropdownMenuItem className="cursor-pointer text-red-600 py-2 focus:text-red-600 focus:bg-red-50" onClick={() => dispatch(logout())}>
+                    <DropdownMenuItem className="cursor-pointer text-red-600 py-2 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" /> Log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>

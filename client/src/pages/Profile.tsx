@@ -1,21 +1,26 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { RootState } from '../redux/store';
-import { logout } from '../redux/slices/authSlice';
+import type { RootState, AppDispatch } from '../redux/store';
+import { logout, updateAuthUser } from '../redux/slices/authSlice';
+import { clearCartState } from '../redux/slices/cartSlice';
+import { clearWishlistState } from '../redux/slices/wishlistSlice';
+import { showError, showSuccess } from '../redux/slices/uiSlice';
+import { profileService, orderService } from '../services';
+import { getApiErrorMessage } from '../lib/errors';
 import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
 import {
   User, FileText, MapPin, ShieldCheck, LogOut,
   Mail, Phone, Package, Heart, Star, Calendar,
-  UserCheck, Plus, Lock, UserCog, Settings, Eye, EyeOff,
-  CheckCircle2, Trash2, Edit3, Home, Briefcase
+  UserCheck,   Plus, Lock, UserCog, Settings, Eye, EyeOff,
+  CheckCircle2, Trash2, Edit3, Home
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Address {
   id: number;
+  addressId?: string;
   label: string;
   icon: typeof Home;
   name: string;
@@ -26,28 +31,6 @@ interface Address {
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
-const INITIAL_ADDRESSES: Address[] = [
-  {
-    id: 1,
-    label: 'Home Address',
-    icon: Home,
-    name: 'Jonathan Wright',
-    line1: '1234 Emerald Avenue, Suite 400',
-    city: 'San Francisco, 94105',
-    country: 'United States',
-    isDefault: true,
-  },
-  {
-    id: 2,
-    label: 'Office',
-    icon: Briefcase,
-    name: 'Jonathan Wright',
-    line1: '500 Howard St, Suite 100',
-    city: 'San Francisco, 94105',
-    country: 'United States',
-    isDefault: false,
-  },
-];
 
 // ─── ChevronRight mini icon ────────────────────────────────────────────────────
 const ChevronRight = ({ className }: { className?: string }) => (
@@ -89,7 +72,15 @@ const FormInput = ({
 );
 
 // ─── Section: Profile Overview ────────────────────────────────────────────────
-const ProfileOverview = ({ user, onLogout }: { user: { name?: string; email?: string; avatar?: string } | null; onLogout: () => void }) => (
+const ProfileOverview = ({
+  user,
+  onLogout,
+  stats,
+}: {
+  user: { name?: string; email?: string; avatar?: string } | null;
+  onLogout: () => void;
+  stats: { orders: number; wishlist: number; addresses: number };
+}) => (
   <motion.div {...fadeUp} className="space-y-6">
     {/* Header card */}
     <div className="border rounded-xl bg-card shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -112,9 +103,9 @@ const ProfileOverview = ({ user, onLogout }: { user: { name?: string; email?: st
     {/* Stats */}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {[
-        { icon: Package, bg: 'bg-blue-50 dark:bg-blue-900/20', color: 'text-blue-500 dark:text-blue-400', value: '24', label: 'Total Orders' },
-        { icon: Heart, bg: 'bg-pink-50 dark:bg-pink-900/20', color: 'text-pink-500 dark:text-pink-400', value: '12', label: 'Wishlist Items' },
-        { icon: MapPin, bg: 'bg-green-50 dark:bg-green-900/20', color: 'text-green-500 dark:text-green-400', value: '2', label: 'Saved Addresses' },
+        { icon: Package, bg: 'bg-blue-50 dark:bg-blue-900/20', color: 'text-blue-500 dark:text-blue-400', value: String(stats.orders), label: 'Total Orders' },
+        { icon: Heart, bg: 'bg-pink-50 dark:bg-pink-900/20', color: 'text-pink-500 dark:text-pink-400', value: String(stats.wishlist), label: 'Wishlist Items' },
+        { icon: MapPin, bg: 'bg-green-50 dark:bg-green-900/20', color: 'text-green-500 dark:text-green-400', value: String(stats.addresses), label: 'Saved Addresses' },
         { icon: Star, bg: 'bg-yellow-50 dark:bg-yellow-900/20', color: 'text-yellow-500 dark:text-yellow-400', value: '85%', label: 'Profile Status', progress: 85 },
       ].map(({ icon: Icon, bg, color, value, label, progress }) => (
         <div key={label} className="border rounded-xl bg-card shadow-sm p-5 flex flex-col justify-between">
@@ -241,6 +232,7 @@ const ProfileOverview = ({ user, onLogout }: { user: { name?: string; email?: st
 
 // ─── Section: Personal Details ─────────────────────────────────────────────────
 const PersonalDetails = ({ user }: { user: { name?: string; email?: string } | null }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const nameParts = (user?.name || 'Jonathan Wright').split(' ');
   const [form, setForm] = useState({
     firstName: nameParts[0] || '',
@@ -252,10 +244,20 @@ const PersonalDetails = ({ user }: { user: { name?: string; email?: string } | n
   });
   const [saved, setSaved] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      const profile = await profileService.updateProfile({
+        username: `${form.firstName} ${form.lastName}`.trim(),
+        email: form.email,
+      });
+      dispatch(updateAuthUser({ name: profile.username, email: profile.email }));
+      dispatch(showSuccess('Profile updated successfully.'));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      dispatch(showError(getApiErrorMessage(error, 'Failed to update profile.')));
+    }
   };
 
   return (
@@ -309,29 +311,100 @@ const PersonalDetails = ({ user }: { user: { name?: string; email?: string } | n
 
 // ─── Section: Saved Addresses ─────────────────────────────────────────────────
 const SavedAddresses = ({ user }: { user: { name?: string } | null }) => {
-  const [addresses, setAddresses] = useState<Address[]>(INITIAL_ADDRESSES);
+  const dispatch = useDispatch<AppDispatch>();
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [newAddr, setNewAddr] = useState({ label: '', line1: '', city: '', country: 'United States' });
+  const [editId, setEditId] = useState<string | null>(null);
+  const [newAddr, setNewAddr] = useState({ label: '', line1: '', city: '', state: '', postalCode: '', country: 'United States' });
+
+  useEffect(() => {
+    profileService.getProfile().then((profile) => {
+      setAddresses(
+        (profile.addresses || []).map((address, index) => ({
+          id: Number(index + 1),
+          addressId: address._id,
+          label: index === 0 ? 'Home Address' : 'Address',
+          icon: Home,
+          name: user?.name || profile.username,
+          line1: address.street,
+          city: `${address.city}, ${address.postalCode}`,
+          country: address.country,
+          isDefault: index === 0,
+        })),
+      );
+    });
+  }, [user?.name]);
 
   const setDefault = (id: number) => setAddresses(a => a.map(addr => ({ ...addr, isDefault: addr.id === id })));
-  const deleteAddr = (id: number) => setAddresses(a => a.filter(addr => addr.id !== id));
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editId !== null) {
-      setAddresses(a => a.map(addr => addr.id === editId ? { ...addr, label: newAddr.label, line1: newAddr.line1, city: newAddr.city, country: newAddr.country } : addr));
-      setEditId(null);
-    } else {
-      setAddresses(a => [...a, { id: Date.now(), label: newAddr.label || 'New Address', icon: Home, name: user?.name || 'Jonathan Wright', line1: newAddr.line1, city: newAddr.city, country: newAddr.country, isDefault: false }]);
+  const deleteAddr = async (addressId: string) => {
+    try {
+      const profile = await profileService.deleteAddress(addressId);
+      setAddresses(
+        (profile.addresses || []).map((address, index) => ({
+          id: Number(index + 1),
+          addressId: address._id,
+          label: index === 0 ? 'Home Address' : 'Address',
+          icon: Home,
+          name: user?.name || profile.username,
+          line1: address.street,
+          city: `${address.city}, ${address.postalCode}`,
+          country: address.country,
+          isDefault: index === 0,
+        })),
+      );
+      dispatch(showSuccess('Address deleted.'));
+    } catch (error) {
+      dispatch(showError(getApiErrorMessage(error, 'Failed to delete address.')));
     }
-    setNewAddr({ label: '', line1: '', city: '', country: 'United States' });
-    setShowForm(false);
   };
 
-  const startEdit = (addr: Address) => {
-    setEditId(addr.id);
-    setNewAddr({ label: addr.label, line1: addr.line1, city: addr.city, country: addr.country });
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        street: newAddr.line1,
+        city: newAddr.city.split(',')[0]?.trim() || newAddr.city,
+        state: newAddr.state || 'N/A',
+        postalCode: newAddr.postalCode || '00000',
+        country: newAddr.country,
+      };
+
+      const profile = editId
+        ? await profileService.updateAddress(editId, payload)
+        : await profileService.addAddress(payload);
+
+      setAddresses(
+        (profile.addresses || []).map((address, index) => ({
+          id: Number(index + 1),
+          addressId: address._id,
+          label: newAddr.label || (index === 0 ? 'Home Address' : 'Address'),
+          icon: Home,
+          name: user?.name || profile.username,
+          line1: address.street,
+          city: `${address.city}, ${address.postalCode}`,
+          country: address.country,
+          isDefault: index === 0,
+        })),
+      );
+      setNewAddr({ label: '', line1: '', city: '', state: '', postalCode: '', country: 'United States' });
+      setShowForm(false);
+      setEditId(null);
+      dispatch(showSuccess(editId ? 'Address updated.' : 'Address added.'));
+    } catch (error) {
+      dispatch(showError(getApiErrorMessage(error, 'Failed to save address.')));
+    }
+  };
+
+  const startEdit = (addr: Address & { addressId?: string }) => {
+    setEditId(addr.addressId || null);
+    setNewAddr({
+      label: addr.label,
+      line1: addr.line1,
+      city: addr.city,
+      state: '',
+      postalCode: '',
+      country: addr.country,
+    });
     setShowForm(true);
   };
 
@@ -343,7 +416,7 @@ const SavedAddresses = ({ user }: { user: { name?: string } | null }) => {
             <h2 className="font-bold text-xl mb-1">Saved Addresses</h2>
             <p className="text-sm text-muted-foreground">Manage your delivery and billing addresses.</p>
           </div>
-          <Button onClick={() => { setShowForm(true); setEditId(null); setNewAddr({ label: '', line1: '', city: '', country: 'United States' }); }} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 h-9">
+          <Button onClick={() => { setShowForm(true); setEditId(null); setNewAddr({ label: '', line1: '', city: '', state: '', postalCode: '', country: 'United States' }); }} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 h-9">
             <Plus className="h-4 w-4" /> Add New
           </Button>
         </div>
@@ -397,7 +470,7 @@ const SavedAddresses = ({ user }: { user: { name?: string } | null }) => {
                   <div className="flex justify-between items-center pl-7">
                     <div className="flex gap-3">
                       <button onClick={() => startEdit(addr)} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1"><Edit3 className="h-3 w-3" />Edit</button>
-                      <button onClick={() => deleteAddr(addr.id)} className="text-red-500 hover:underline text-xs font-medium flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
+                      <button onClick={() => addr.addressId && deleteAddr(addr.addressId)} className="text-red-500 hover:underline text-xs font-medium flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
                     </div>
                     {!addr.isDefault && (
                       <button onClick={() => setDefault(addr.id)} className="text-muted-foreground hover:text-blue-600 text-xs font-medium transition-colors">Set as Default</button>
@@ -558,17 +631,31 @@ type NavId = typeof NAV[number]['id'];
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export function Profile() {
-  const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { productIds } = useSelector((state: RootState) => state.wishlist);
   const [activeSection, setActiveSection] = useState<NavId>('overview');
+  const [stats, setStats] = useState({ orders: 0, wishlist: 0, addresses: 0 });
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  useEffect(() => {
+    Promise.all([orderService.getMyOrders(), profileService.getProfile()]).then(([orders, profile]) => {
+      setStats({
+        orders: orders.length,
+        wishlist: productIds.length,
+        addresses: profile.addresses?.length || 0,
+      });
+    });
+  }, [productIds.length]);
 
-  const handleLogout = () => dispatch(logout());
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(clearCartState());
+    dispatch(clearWishlistState());
+  };
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'overview':  return <ProfileOverview user={user} onLogout={handleLogout} />;
+      case 'overview':  return <ProfileOverview user={user} onLogout={handleLogout} stats={stats} />;
       case 'details':   return <PersonalDetails user={user} />;
       case 'addresses': return <SavedAddresses user={user} />;
       case 'security':  return <AccountSecurity />;

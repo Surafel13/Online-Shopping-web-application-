@@ -3,6 +3,7 @@ import {
   createOrder,
   getOrderById,
   getUserOrders,
+  getAllOrders,
   updateOrderStatus,
   updatePaymentStatus,
   deleteOrder,
@@ -145,6 +146,20 @@ orderRouter.post("/", createOrder);
  *                     $ref: '#/components/schemas/Order'
  */
 orderRouter.get("/me", getUserOrders);
+
+/**
+ * @swagger
+ * /orders:
+ *   get:
+ *     summary: Get all orders (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all orders
+ */
+orderRouter.get("/", restrictTo("admin"), getAllOrders);
 
 ////////////////////////////////////////////////////////////////////////////////
 // GET ORDER BY ID (ADMIN ONLY)

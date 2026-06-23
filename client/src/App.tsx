@@ -1,9 +1,15 @@
 import { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from './redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from './redux/store';
+import { restoreSession } from './redux/slices/authSlice';
+import { fetchCart } from './redux/slices/cartSlice';
+import { fetchWishlist } from './redux/slices/wishlistSlice';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
+import { FeedbackToast } from './components/shared/FeedbackToast';
 import { Home } from './pages/Home';
 import { Collections } from './pages/Collections';
 import { ProductDetail } from './pages/ProductDetail';
@@ -16,6 +22,8 @@ import { Orders } from './pages/Orders';
 import { Wishlist } from './pages/Wishlist';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminOverview } from './pages/admin/AdminOverview';
+import { AdminProducts } from './pages/admin/AdminProducts';
+import { AdminCategories } from './pages/admin/AdminCategories';
 import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminCustomers } from './pages/admin/AdminCustomers';
 import { AdminAnalytics } from './pages/admin/AdminAnalytics';
@@ -23,8 +31,21 @@ import { AdminSettings } from './pages/admin/AdminSettings';
 
 function App() {
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const theme = useSelector((state: RootState) => state.theme.theme);
+  const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+      dispatch(fetchWishlist());
+    }
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -35,6 +56,14 @@ function App() {
     }
   }, [theme]);
 
+  if (!isInitialized && !isAdminRoute) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-foreground">
       {!isAdminRoute && <Header />}
@@ -43,16 +72,25 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
             <Route index element={<AdminOverview />} />
             <Route path="overview" element={<AdminOverview />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="analytics" element={<AdminAnalytics />} />
@@ -61,8 +99,9 @@ function App() {
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
+      <FeedbackToast />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,38 +9,10 @@ import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { ArrowRight, Send } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { PageTransition } from '../components/layout/PageTransition';
+import { productService, categoryService } from '../services';
+import { buildCategoryMap, mapApiProductToProductType, mapCategoriesForHome } from '../lib/mappers';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const CATEGORIES = [
-  { name: 'Outerwear', image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop', count: 42 },
-  { name: 'Accessories', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop', count: 86 },
-  { name: 'Home & Living', image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600&auto=format&fit=crop', count: 34 },
-  { name: 'Footwear', image: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=600&auto=format&fit=crop', count: 51 },
-];
-
-const BEST_SELLERS: ProductType[] = [
-  {
-    id: '1', name: 'Premium Essential Cashmere', price: 189, originalPrice: 245,
-    image: 'https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?q=80&w=600&auto=format&fit=crop',
-    category: 'Apparel', rating: 4.8, reviews: 124, isNew: true, colors: ['#202a36', '#8e8e93', '#e5e5ea']
-  },
-  {
-    id: '2', name: 'Architectural Leather Tote Bag', price: 450,
-    image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=600&auto=format&fit=crop',
-    category: 'Accessories', rating: 4.9, reviews: 86, colors: ['#000000', '#8b4513']
-  },
-  {
-    id: '5', name: 'Carbon Fiber Hybrid Watch', price: 890,
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop',
-    category: 'Accessories', rating: 4.9, reviews: 12, colors: ['#171717']
-  },
-  {
-    id: '4', name: 'Performance Merino Tee', price: 75,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop',
-    category: 'Apparel', rating: 4.6, reviews: 215, isNew: true, colors: ['#1e3a8a', '#dc2626', '#171717']
-  },
-];
 
 export function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -48,6 +20,28 @@ export function Home() {
   const bestsellersRef = useScrollAnimation({ direction: 'up', stagger: 0.12 });
   const promoRef = useScrollAnimation({ direction: 'left', distance: 60 });
   const newsletterRef = useScrollAnimation({ direction: 'up', distance: 30 });
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; image: string; count: number }>>([]);
+  const [bestSellers, setBestSellers] = useState<ProductType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [products, apiCategories] = await Promise.all([
+          productService.getAll(),
+          categoryService.getAll(),
+        ]);
+        const categoryMap = buildCategoryMap(apiCategories);
+        const mappedProducts = products.map((product) => mapApiProductToProductType(product, categoryMap));
+        setCategories(mapCategoriesForHome(apiCategories, products));
+        setBestSellers(mappedProducts.slice(0, 4));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -147,10 +141,10 @@ export function Home() {
               <p className="text-muted-foreground max-w-lg mx-auto">Explore our thoughtfully curated collections designed for every aspect of your lifestyle.</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <Link
-                  key={cat.name}
-                  to={`/collections?category=${cat.name.toLowerCase()}`}
+                  key={cat.id}
+                  to={`/collections?category=${encodeURIComponent(cat.name)}`}
                   className="scroll-anim group relative aspect-[3/4] rounded-2xl overflow-hidden"
                 >
                   <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -178,11 +172,15 @@ export function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {BEST_SELLERS.map((product) => (
-                <div key={product.id} className="scroll-anim">
-                  <ProductCard product={product} />
-                </div>
-              ))}
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="scroll-anim aspect-[4/5] rounded-lg bg-muted animate-pulse" />
+                  ))
+                : bestSellers.map((product) => (
+                    <div key={product.id} className="scroll-anim">
+                      <ProductCard product={product} />
+                    </div>
+                  ))}
             </div>
           </div>
         </section>

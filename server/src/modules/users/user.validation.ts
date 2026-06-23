@@ -6,3 +6,8 @@ export const updateProfileSchema = z.object({
   role: z.enum(["customer", "admin"]).optional(),
   isActive: z.boolean().optional(),
 });
+
+export const adminUpdateUserSchema = z.object({
+  role: z.enum(["customer", "admin"]).optional(),
+  isActive: z.boolean().optional(),
+});
