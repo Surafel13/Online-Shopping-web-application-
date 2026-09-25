@@ -105,7 +105,6 @@ export function Cart() {
                         <div className="flex flex-1 flex-col sm:flex-row justify-between gap-4">
                           <div className="flex flex-col justify-center">
                             <h3 className="font-bold text-base sm:text-lg mb-1 text-foreground leading-tight">{item.name}</h3>
-                            <p className="text-sm text-muted-foreground">{item.variant}</p>
                           </div>
                           
                           <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-4">

@@ -50,6 +50,12 @@ export function Checkout() {
       let addressId = selectedAddressId;
 
       if (!addressId) {
+        if (!shippingForm.street || !shippingForm.city || !shippingForm.country) {
+          dispatch(showError('Please fill out all required shipping address fields.'));
+          setIsSubmitting(false);
+          return;
+        }
+
         const profile = await profileService.addAddress(shippingForm);
         const createdAddress = profile.addresses?.[profile.addresses.length - 1];
         addressId = createdAddress?._id || '';
@@ -57,6 +63,7 @@ export function Checkout() {
 
       if (!addressId) {
         dispatch(showError('Please provide a valid shipping address.'));
+        setIsSubmitting(false);
         return;
       }
 

@@ -214,6 +214,12 @@ export function Collections() {
   const [minRating, setMinRating]         = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering]     = useState(false);
+  const [currentPage, setCurrentPage]     = useState(1);
+  const itemsPerPage = 12;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, sort, priceRange, inStockOnly, onSaleOnly, newOnly, minRating]);
 
   useEffect(() => {
     async function loadProducts() {
@@ -280,6 +286,13 @@ export function Collections() {
     }
     return result;
   }, [allProducts, search, category, sort, priceRange, inStockOnly, onSaleOnly, newOnly, minRating]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   const activeFiltersCount = [
     category !== 'All Products', inStockOnly, onSaleOnly, newOnly,
@@ -507,7 +520,7 @@ export function Collections() {
                 </motion.div>
               ) : viewMode === 'grid' ? (
                 <motion.div key="grid" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {filtered.map((product, i) => (
+                  {paginated.map((product, i) => (
                     <motion.div key={product.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                       <ProductCardGrid product={product} />
                     </motion.div>
@@ -515,7 +528,7 @@ export function Collections() {
                 </motion.div>
               ) : (
                 <motion.div key="list" className="flex flex-col gap-4">
-                  {filtered.map((product, i) => (
+                  {paginated.map((product, i) => (
                     <motion.div key={product.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
                       <ProductCardList product={product} />
                     </motion.div>
@@ -524,19 +537,50 @@ export function Collections() {
               )}
             </AnimatePresence>
 
-            {/* Pagination (mock) */}
-            {filtered.length > 0 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-12 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" className="h-8 w-8 text-sm">&lsaquo;</Button>
-                  {[1, 2, 3].map(n => (
-                    <Button key={n} variant={n === 1 ? 'default' : 'outline'} size="icon" className={`h-8 w-8 text-sm ${n === 1 ? 'bg-blue-600 hover:bg-blue-700 border-blue-600' : ''}`}>{n}</Button>
-                  ))}
-                  <span className="text-muted-foreground px-1">…</span>
-                  <Button variant="outline" size="icon" className="h-8 w-8 text-sm">12</Button>
-                  <Button variant="outline" size="icon" className="h-8 w-8 text-sm">&rsaquo;</Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-8 w-8 text-sm" 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >&lsaquo;</Button>
+                  
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const page = i + 1;
+                    // Show first, last, and pages around current
+                    if (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) {
+                      return (
+                        <Button 
+                          key={page} 
+                          variant={page === currentPage ? 'default' : 'outline'} 
+                          size="icon" 
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-8 w-8 text-sm ${page === currentPage ? 'bg-blue-600 hover:bg-blue-700 border-blue-600' : ''}`}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="text-muted-foreground px-1">…</span>;
+                    }
+                    return null;
+                  })}
+                  
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-8 w-8 text-sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >&rsaquo;</Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Showing 1–{Math.min(filtered.length, 12)} of {filtered.length} products</p>
+                <p className="text-xs text-muted-foreground">
+                  Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} products
+                </p>
               </motion.div>
             )}
           </div>

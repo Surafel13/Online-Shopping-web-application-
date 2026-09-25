@@ -16,22 +16,7 @@ import { addToCartAsync } from '../redux/slices/cartSlice';
 import { addToWishlistAsync, fetchWishlist, removeFromWishlistAsync } from '../redux/slices/wishlistSlice';
 import { showError, showSuccess } from '../redux/slices/uiSlice';
 
-const DEFAULT_COLORS = [
-  { name: 'Midnight Black', hex: '#202a36' },
-  { name: 'Forest Green', hex: '#4b5320' },
-  { name: 'Slate Gray', hex: '#708090' },
-];
 
-const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
-const DEFAULT_FEATURES = [
-  'Windproof shell',
-  '4-way stretch fabric',
-  'Moisture-wicking lining',
-  'Hidden security pockets',
-  'Recycled insulation',
-  'Adjustable hood',
-];
 
 export function ProductDetail() {
   const { id } = useParams();
@@ -41,8 +26,6 @@ export function ProductDetail() {
   const [apiProduct, setApiProduct] = useState<ApiProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedColor, setSelectedColor] = useState('#202a36');
-  const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('Description');
 
@@ -98,9 +81,6 @@ export function ProductDetail() {
     rating,
     reviews,
     description: apiProduct.description,
-    colors: DEFAULT_COLORS,
-    sizes: DEFAULT_SIZES,
-    features: DEFAULT_FEATURES,
     image: apiProduct.images?.[0] || '',
     inStock: apiProduct.stock > 0,
   };
@@ -177,46 +157,7 @@ export function ProductDetail() {
 
             <p className="text-muted-foreground mb-8">{product.description}</p>
 
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-sm">COLOR: <span className="text-muted-foreground">{product.colors.find(c => c.hex === selectedColor)?.name}</span></span>
-              </div>
-              <div className="flex gap-3">
-                {product.colors.map(color => (
-                  <button
-                    key={color.hex}
-                    onClick={() => setSelectedColor(color.hex)}
-                    className={cn(
-                      'h-8 w-8 rounded-full border-2 ring-offset-2 transition-all',
-                      selectedColor === color.hex ? 'border-primary ring-2 ring-primary' : 'border-transparent hover:scale-110',
-                    )}
-                    style={{ backgroundColor: color.hex }}
-                    aria-label={`Select ${color.name}`}
-                  />
-                ))}
-              </div>
-            </div>
 
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-sm">SIZE</span>
-                <button className="text-sm text-primary hover:underline">Size Guide</button>
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                {product.sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={cn(
-                      'h-10 rounded-md border transition-all text-sm font-medium',
-                      selectedSize === size ? 'bg-blue-600 border-blue-600 text-white' : 'bg-transparent border-input hover:border-gray-400',
-                    )}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="flex gap-4 mb-6">
               <div className="flex items-center border rounded-md h-12 w-32 shrink-0">
@@ -275,15 +216,6 @@ export function ProductDetail() {
           <div className="max-w-3xl">
             <h2 className="text-2xl font-bold mb-4">Uncompromising Performance</h2>
             <p className="text-muted-foreground mb-8 leading-relaxed">{product.description}</p>
-            
-            <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8">
-              {product.features.map((feature, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  <ShieldCheck className="h-4 w-4 text-green-600" />
-                  {feature}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 

@@ -48,6 +48,10 @@ app.use(cookieParser());
 app.use(morganMiddleware);
 
 
+import aiRoutes from "./modules/ai/ai.routes.js";
+
+app.use("/api/ask", aiRoutes)
+
 // Auth routes (rate limited)
 app.use("/api/auth", authRateLimiter, authRoute);
 

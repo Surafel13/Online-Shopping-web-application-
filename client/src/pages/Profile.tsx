@@ -89,13 +89,14 @@ const ProfileOverview = ({
       </div>
       <div className="flex flex-col">
         <div className="flex flex-wrap items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold">{user?.name || 'Jonathan Wright'}</h1>
-          <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/50 tracking-wider">Platinum Member</span>
+          <h1 className="text-2xl font-bold">{user?.name || 'User'}</h1>
+          <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/50 tracking-wider">
+            {user?.role || 'Customer'}
+          </span>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Welcome back! You've been a member since July 2022.</p>
+        <p className="text-sm text-muted-foreground mb-4">Welcome back!</p>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
-          <span className="flex items-center gap-2"><Mail className="h-4 w-4" />{user?.email || 'j.wright@example.com'}</span>
-          <span className="flex items-center gap-2"><Phone className="h-4 w-4" />+1 (555) 012-3456</span>
+          <span className="flex items-center gap-2"><Mail className="h-4 w-4" />{user?.email || ''}</span>
         </div>
       </div>
     </div>
@@ -134,11 +135,8 @@ const ProfileOverview = ({
       </div>
       <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
         {[
-          { icon: User, label: 'Full Name', value: user?.name || 'Jonathan Wright' },
-          { icon: Mail, label: 'Email Address', value: user?.email || 'j.wright@example.com' },
-          { icon: Phone, label: 'Phone Number', value: '+1 (555) 012-3456' },
-          { icon: UserCheck, label: 'Gender', value: 'Male' },
-          { icon: Calendar, label: 'Date of Birth', value: 'January 15, 1992' },
+          { icon: User, label: 'Full Name', value: user?.name || '' },
+          { icon: Mail, label: 'Email Address', value: user?.email || '' },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex gap-4">
             <Icon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -165,7 +163,7 @@ const ProfileOverview = ({
             Home Address
           </h4>
           <div className="text-sm text-muted-foreground space-y-0.5 pl-7 mb-4">
-            <p className="font-medium text-foreground">{user?.name || 'Jonathan Wright'}</p>
+            <p className="font-medium text-foreground">{user?.name || 'User'}</p>
             <p>1234 Emerald Avenue, Suite 400</p>
             <p>San Francisco, 94105</p>
             <p>United States</p>
@@ -233,14 +231,11 @@ const ProfileOverview = ({
 // ─── Section: Personal Details ─────────────────────────────────────────────────
 const PersonalDetails = ({ user }: { user: { name?: string; email?: string } | null }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const nameParts = (user?.name || 'Jonathan Wright').split(' ');
+  const nameParts = (user?.name || '').split(' ');
   const [form, setForm] = useState({
     firstName: nameParts[0] || '',
     lastName: nameParts.slice(1).join(' ') || '',
-    email: user?.email || 'j.wright@example.com',
-    phone: '+1 (555) 012-3456',
-    gender: 'Male',
-    dob: '1992-01-15',
+    email: user?.email || '',
   });
   const [saved, setSaved] = useState(false);
 
@@ -275,24 +270,6 @@ const PersonalDetails = ({ user }: { user: { name?: string; email?: string } | n
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <FormInput label="Email Address" type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="you@example.com" />
-            <FormInput label="Phone Number" type="tel" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} placeholder="+1 (555) 000-0000" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-                Gender <span className="font-normal normal-case text-muted-foreground/60">(optional)</span>
-              </label>
-              <select
-                value={form.gender}
-                onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
-                className="w-full h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
-              >
-                <option value="">Prefer not to say</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-            <FormInput label="Date of Birth" type="date" value={form.dob} onChange={v => setForm(f => ({ ...f, dob: v }))} optional />
           </div>
 
           <div className="flex items-center gap-4 pt-2 border-t">
@@ -361,6 +338,11 @@ const SavedAddresses = ({ user }: { user: { name?: string } | null }) => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!newAddr.line1 || !newAddr.city || !newAddr.country) {
+        dispatch(showError('Please fill out all required address fields.'));
+        return;
+      }
+
       const payload = {
         street: newAddr.line1,
         city: newAddr.city.split(',')[0]?.trim() || newAddr.city,
@@ -680,8 +662,7 @@ export function Profile() {
                       : <User className="h-6 w-6 text-slate-400 dark:text-slate-500" />}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-sm leading-tight truncate">{user?.name || 'Jonathan Wright'}</span>
-                    <span className="text-xs text-muted-foreground mt-0.5">Member since 2022</span>
+                    <span className="font-bold text-sm leading-tight truncate">{user?.name || 'User'}</span>
                   </div>
                 </div>
 
