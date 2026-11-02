@@ -11,14 +11,14 @@ export function AdminLayout() {
   return (
     <div className="flex h-screen bg-muted/10 overflow-hidden w-full">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="h-16 border-b bg-background flex items-center justify-between px-8 shrink-0">
           <div className="relative w-96 max-w-md hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9 h-9 bg-muted/50 border-transparent focus-visible:bg-transparent" placeholder="Search orders, customers, products..." />
           </div>
-          
+
           <div className="flex items-center gap-4 ml-auto">
             <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
               <Bell className="h-5 w-5" />

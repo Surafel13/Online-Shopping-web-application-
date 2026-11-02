@@ -41,7 +41,7 @@ app.use(
 );
 
 
-app.use(globalRateLimit);
+// app.use(globalRateLimit);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

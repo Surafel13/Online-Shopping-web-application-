@@ -12,8 +12,8 @@ import { PageTransition } from '../components/layout/PageTransition';
 import { Button } from '../components/ui/button';
 import {
   User, FileText, MapPin, ShieldCheck, LogOut,
-  Mail, Phone, Package, Heart, Star, Calendar,
-  UserCheck,   Plus, Lock, UserCog, Settings, Eye, EyeOff,
+  Mail, Package, Heart, Star,
+     Plus, Lock, UserCog, Settings, Eye, EyeOff,
   CheckCircle2, Trash2, Edit3, Home
 } from 'lucide-react';
 

@@ -61,10 +61,10 @@ export function Header() {
             </div>
           </div>
           <nav className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-9 w-9" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
               onClick={() => dispatch(toggleTheme())}
               aria-label="Toggle theme"
             >

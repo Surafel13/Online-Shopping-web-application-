@@ -7,7 +7,10 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "build": "tsc",
-    "prod": "node dist/server.js"
+    "prod": "node dist/server.js",
+    "seed:users": "tsx --env-file=.env src/seeds/Users.ts",
+    "seed:categories": "tsx src/seeds/Categories.ts",
+    "seed:products": "tsx src/seeds/Product.ts"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
