@@ -14,12 +14,28 @@ export interface ApiUser {
   _id: string;
   username: string;
   email: string;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'super_admin';
   isActive: boolean;
   addresses?: ApiAddress[];
   profileImg?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface SuperAdminOverview {
+  stats: {
+    totalUsers: number;
+    totalAdmins: number;
+    totalProducts: number;
+    totalOrders: number;
+    pendingOrders: number;
+    totalRevenue: number;
+    lowStockProducts: number;
+    outOfStockProducts: number;
+  };
+  monthlyRevenue: Array<{ name: string; revenue: number }>;
+  recentOrders: ApiOrder[];
+  recentUsers: ApiUser[];
 }
 
 export interface AuthResult {

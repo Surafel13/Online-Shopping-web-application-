@@ -15,7 +15,7 @@ export interface IUser{
     username: string,
     email: string,
     password: string,
-    role: "customer" | "admin",
+    role: "customer" | "admin" | "super_admin",
     isActive : boolean,
     addresses: IAddress[],
     profileImg? : string

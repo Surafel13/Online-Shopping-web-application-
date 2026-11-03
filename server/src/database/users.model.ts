@@ -6,7 +6,7 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    city: { 
+    city: {
          type: String,
         required: true
     },
@@ -24,38 +24,41 @@ const addressSchema = new mongoose.Schema({
     }
 });
 
-const userSchema = new mongoose.Schema<IUser>({
+const userSchema = new mongoose.Schema<IUser>(
+  {
     username: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true
+      type: String,
+      required: true,
+      unique: true,
     },
-    password:{
-        type: String,
-        required: true,
-        select: false
+    password: {
+      type: String,
+      required: true,
+      select: false,
     },
-    role : {
-        type : String,
-        enum :{
-            values : ["customer", "admin"],
-            message : "{VALUE} is not supported role." 
-        },
-        default : "customer",
+    role: {
+      type: String,
+      enum: {
+        values: ["customer", "admin", "super_admin"],
+        message: "{VALUE} is not supported role.",
+      },
+      default: "customer",
     },
-    isActive : {
-        type: Boolean,
-        default: true
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     addresses: [addressSchema],
-    profileImg : {
-        type: String
-    }
-}, {timestamps : true});
+    profileImg: {
+      type: String,
+    },
+  },
+  { timestamps: true },
+);
 
 const Users = mongoose.model<IUser>("Users", userSchema)
 export default Users

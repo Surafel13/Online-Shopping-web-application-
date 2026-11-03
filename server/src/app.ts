@@ -22,6 +22,8 @@ import categoryRoute from "./modules/catagory/catagory.route.js";
 import cartRoute from "./modules/cart/cart.route.js";
 import orderRoute from "./modules/orders/order.routes.js";
 import wishlistRoute from "./modules/wishlist/wishlist.routes.js";
+import { restrictTo } from "./middleware/role.middleware.js";
+import superAdminRoute from "./modules/superadmin/superadmin.routes.js";
 
 const app = express();
 
@@ -65,6 +67,12 @@ app.use("/api/cart", authMiddleware, cartRoute);
 app.use("/api/orders", authMiddleware, orderRoute);
 app.use("/api/wishlist", authMiddleware, wishlistRoute);
 
+app.use(
+  "/api/super-admin",
+  authMiddleware,
+  restrictTo("super_admin"),
+  superAdminRoute,
+);
 
 app.use((req, res) => {
   res.status(404).json({

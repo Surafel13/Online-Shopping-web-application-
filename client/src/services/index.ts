@@ -7,3 +7,4 @@ export { orderService } from './orderService';
 export { profileService } from './profileService';
 export { userService } from './userService';
 export { adminService } from './adminService';
+export { superAdminService } from "./superAdminService";

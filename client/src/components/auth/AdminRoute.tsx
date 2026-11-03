@@ -1,6 +1,6 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../redux/store';
+import { Navigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../redux/store";
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -8,7 +8,9 @@ interface AdminRouteProps {
 
 export function AdminRoute({ children }: AdminRouteProps) {
   const location = useLocation();
-  const { isAuthenticated, isInitialized, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, isInitialized, user } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   if (!isInitialized) {
     return (
@@ -22,7 +24,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (user?.role !== 'admin') {
+  if (user?.role !== "admin" && user?.role !== "super_admin") {
     return <Navigate to="/" replace />;
   }
 
