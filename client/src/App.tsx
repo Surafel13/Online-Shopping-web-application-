@@ -30,6 +30,24 @@ import { AdminCustomers } from "./pages/admin/AdminCustomers";
 import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
 import { AdminSettings } from "./pages/admin/AdminSettings";
 
+import {
+  AdminAddProduct,
+  AdminInventory,
+  AdminPayments,
+  AdminRefunds,
+  AdminSellers,
+  AdminPromotions,
+  AdminCoupons,
+  AdminReviews,
+  AdminSupport,
+  AdminDisputes,
+  AdminNotifications,
+  AdminSalesReports,
+  AdminRevenueReports,
+  AdminProductPerformance,
+  AdminChangePassword,
+} from "./pages/admin/AdminPlaceholderSections";
+
 import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
 import { SuperAdminLayout } from "./components/layout/SuperAdminLayout";
 import { SuperAdminOverview } from "./pages/superadmin/SuperAdminOverview";
@@ -182,14 +200,44 @@ function App() {
               </AdminRoute>
             }
           >
+            {/* Dashboard */}
             <Route index element={<AdminOverview />} />
             <Route path="overview" element={<AdminOverview />} />
+
+            {/* Catalog Management */}
             <Route path="products" element={<AdminProducts />} />
+            <Route path="add-product" element={<AdminAddProduct />} />
             <Route path="categories" element={<AdminCategories />} />
+            <Route path="inventory" element={<AdminInventory />} />
+
+            {/* Sales Management */}
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="refunds" element={<AdminRefunds />} />
+
+            {/* User Management */}
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="sellers" element={<AdminSellers />} />
+
+            {/* Marketing */}
+            <Route path="promotions" element={<AdminPromotions />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+
+            {/* Customer Engagement */}
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="support" element={<AdminSupport />} />
+            <Route path="disputes" element={<AdminDisputes />} />
+            <Route path="notifications" element={<AdminNotifications />} />
+
+            {/* Analytics */}
             <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="analytics/sales" element={<AdminSalesReports />} />
+            <Route path="analytics/revenue" element={<AdminRevenueReports />} />
+            <Route path="analytics/products" element={<AdminProductPerformance />} />
+
+            {/* Account Settings */}
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="change-password" element={<AdminChangePassword />} />
           </Route>
 
           <Route
