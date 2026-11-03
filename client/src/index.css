@@ -75,3 +75,26 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menu-animate[data-state='open'] {
+  animation: menu-in 150ms ease-out;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-animate[data-state='open'] {
+    animation: none;
+  }
+}

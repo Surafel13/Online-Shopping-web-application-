@@ -15,6 +15,7 @@ import { Collections } from "./pages/Collections";
 import { ProductDetail } from "./pages/ProductDetail";
 import { Cart } from "./pages/Cart";
 import { Checkout } from "./pages/Checkout";
+import { Categories } from "./pages/Categories";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Profile } from "./pages/Profile";
@@ -32,6 +33,15 @@ import { AdminSettings } from "./pages/admin/AdminSettings";
 import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
 import { SuperAdminLayout } from "./components/layout/SuperAdminLayout";
 import { SuperAdminOverview } from "./pages/superadmin/SuperAdminOverview";
+
+import {
+  AboutPage,
+  ContactPage,
+  NotificationsPage,
+  AddressesPage,
+  AccountSettingsPage,
+} from "./pages/PlaceholderPages";
+
 import {
   SuperAdminUsers,
   SuperAdminAdmins,
@@ -93,6 +103,34 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/collections" element={<Collections />} />
+          <Route path="/categories" element={<Categories />} />
+
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/addresses"
+            element={
+              <ProtectedRoute>
+                <AddressesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/settings"
+            element={
+              <ProtectedRoute>
+                <AccountSettingsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route
             path="/cart"

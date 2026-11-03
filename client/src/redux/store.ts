@@ -1,10 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import cartReducer from './slices/cartSlice';
-import wishlistReducer from './slices/wishlistSlice';
-import productReducer from './slices/productSlice';
-import themeReducer from './slices/themeSlice';
-import uiReducer from './slices/uiSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./slices/authSlice";
+import cartReducer from "./slices/cartSlice";
+import wishlistReducer from "./slices/wishlistSlice";
+import productReducer from "./slices/productSlice";
+import themeReducer from "./slices/themeSlice";
+import uiReducer from "./slices/uiSlice";
+import notificationReducer from "./slices/notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     product: productReducer,
     theme: themeReducer,
     ui: uiReducer,
+    notifications: notificationReducer,
   },
 });
 
