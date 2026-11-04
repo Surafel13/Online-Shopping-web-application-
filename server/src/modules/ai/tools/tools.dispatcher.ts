@@ -1,16 +1,18 @@
 import { getProducts } from "./implementations/getProductsAnalaytics.js";
 
-class ToolDispatcher {
+export class ToolDispatcher {
 
-    async excute(
+    async execute(
         toolName: string,
-        args: Record<string, any>
+        args: Record<string, unknown>
     ) {
+        void args;
 
         switch (toolName) {
             case "getProducts":
                 return await getProducts();
-
+            default:
+                return undefined;
         }
     }
 

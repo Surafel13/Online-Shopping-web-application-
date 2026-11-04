@@ -46,16 +46,21 @@ export function Checkout() {
   useEffect(() => {
     dispatch(fetchCart());
 
-    profileService.getProfile().then((profile) => {
-      const userAddresses = profile.addresses || [];
-      setAddresses(userAddresses);
-      if (userAddresses.length > 0) {
-        setSelectedAddressId(userAddresses[0]._id);
-        setIsAddingNewAddress(false);
-      } else {
-        setIsAddingNewAddress(true);
-      }
-    });
+    profileService
+      .getProfile()
+      .then((profile) => {
+        const userAddresses = profile.addresses || [];
+        setAddresses(userAddresses);
+        if (userAddresses.length > 0) {
+          setSelectedAddressId(userAddresses[0]._id);
+          setIsAddingNewAddress(false);
+        } else {
+          setIsAddingNewAddress(true);
+        }
+      })
+      .catch((error: unknown) => {
+        dispatch(showError(getApiErrorMessage(error, "Unable to load saved addresses.")));
+      });
   }, [dispatch]);
 
   const subtotal =

@@ -113,11 +113,11 @@ export function Header() {
           <Link to="/" className="flex items-center space-x-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-primary">
               <span className="text-xs font-bold text-primary-foreground">
-                N
+                S
               </span>
             </div>
             <span className="hidden font-bold sm:inline-block">
-              Nexa Commerce
+              Sheger Gebeya
             </span>
           </Link>
 

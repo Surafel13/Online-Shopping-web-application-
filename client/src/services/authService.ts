@@ -1,21 +1,22 @@
-import apiClient from './api';
+import apiClient, { requireApiValue } from './api';
 import type { ApiResponse, AuthResult } from '../types/api';
+import type { ILogin, IRegister } from '../types/user.types';
 
 export const authService = {
-  async login(email: string, password: string) {
+  async login(payload: ILogin) {
     const { data } = await apiClient.post<ApiResponse<AuthResult>>('/auth/login', {
-      email,
-      password,
+      email: payload.email.trim(),
+      password: payload.password,
     });
-    return data.result!;
+    return requireApiValue(data.result, 'authentication result');
   },
 
-  async signup(username: string, email: string, password: string) {
+  async signup(payload: IRegister) {
     const { data } = await apiClient.post<ApiResponse<AuthResult>>('/auth/signup', {
-      username,
-      email,
-      password,
+      username: payload.fullName.trim(),
+      email: payload.email.trim(),
+      password: payload.password,
     });
-    return data.result!;
+    return requireApiValue(data.result, 'authentication result');
   },
 };

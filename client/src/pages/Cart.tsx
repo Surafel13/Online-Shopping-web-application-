@@ -53,17 +53,14 @@ export function Cart() {
     <PageTransition>
       <div className="container px-4 py-12 max-w-screen-xl mx-auto">
 
-        {/* Top Navigation */}
         <Link to="/collections" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-10 transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
         </Link>
 
         <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-16">
 
-          {/* ── LEFT COLUMN: CART ITEMS ── */}
           <div className="flex-1 min-w-0">
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight mb-2">Shopping Cart</h1>
@@ -74,14 +71,13 @@ export function Cart() {
               </div>
             </div>
 
-            {/* Cart Items Container */}
-            <div className="border rounded-2xl bg-card p-6 shadow-sm mb-6">
+            <div className="mb-6">
               {isLoading && items.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">Loading cart...</div>
               ) : (
               <AnimatePresence initial={false}>
                 {items.length > 0 ? (
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
                     {items.map((item, index) => (
                       <motion.div
                         key={item.id}
@@ -89,19 +85,17 @@ export function Cart() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                        className={`flex flex-col sm:flex-row gap-6 ${index !== items.length - 1 ? 'border-b pb-6' : ''}`}
+                        className={`flex flex-col sm:flex-row gap-6 py-6 ${index !== items.length - 1 ? 'border-b border-border/50' : 'pb-0'}`}
                       >
-                        {/* Image */}
-                        <div className="w-full sm:w-32 h-32 rounded-xl bg-slate-50 dark:bg-slate-800/50 overflow-hidden shrink-0 relative border border-slate-100 dark:border-slate-700">
+                        <div className="w-full sm:w-32 h-32 rounded-xl bg-muted/40 overflow-hidden shrink-0 relative">
                           {item.originalPrice && item.originalPrice > item.price && (
                             <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                               Sale
                             </span>
                           )}
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover mix-blend-multiply p-1 hover:scale-105 transition-transform duration-500" />
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover p-1 hover:scale-105 transition-transform duration-500" />
                         </div>
 
-                        {/* Details */}
                         <div className="flex flex-1 flex-col sm:flex-row justify-between gap-4">
                           <div className="flex flex-col justify-center">
                             <h3 className="font-bold text-base sm:text-lg mb-1 text-foreground leading-tight">{item.name}</h3>
@@ -116,14 +110,12 @@ export function Cart() {
                             </div>
 
                             <div className="flex items-center gap-6">
-                              {/* Quantity Control */}
-                              <div className="flex items-center border rounded-lg h-9 overflow-hidden bg-background">
+                              <div className="flex items-center border border-border/70 rounded-lg h-9 overflow-hidden bg-background">
                                 <button onClick={() => updateQuantity(item.id, -1)} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">-</button>
                                 <span className="w-10 text-center font-semibold text-sm">{item.quantity}</span>
                                 <button onClick={() => updateQuantity(item.id, 1)} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">+</button>
                               </div>
 
-                              {/* Remove Button */}
                               <button
                                 onClick={() => removeItem(item.id)}
                                 className="text-muted-foreground hover:text-red-500 transition-colors p-2"
@@ -138,7 +130,7 @@ export function Cart() {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-12 text-center">
+                  <div className="py-16 text-center">
                     <p className="text-muted-foreground mb-4">Your cart is empty.</p>
                     <Link to="/collections">
                       <Button className="bg-blue-600 hover:bg-blue-700">Continue Shopping</Button>
@@ -149,19 +141,16 @@ export function Cart() {
               )}
             </div>
 
-            {/* Free Shipping Notice */}
             {items.length > 0 && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground pl-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pl-1">
                 <Truck className="h-4 w-4" /> You've earned free shipping!
               </div>
             )}
           </div>
 
-          {/* ── RIGHT COLUMN: ORDER SUMMARY ── */}
           <div className="w-full lg:w-[380px] shrink-0 space-y-4 sticky top-24">
 
-            {/* Summary Card */}
-            <div className="border rounded-2xl p-6 sm:p-8 bg-card shadow-sm">
+            <div className="p-1">
               <h2 className="text-xl font-bold mb-6">Order Summary</h2>
 
               <div className="space-y-4 mb-6">
@@ -179,54 +168,51 @@ export function Cart() {
                 </div>
               </div>
 
-              {/* Promo Code */}
               <div className="flex gap-2 mb-6">
                 <input
                   type="text"
                   placeholder="Promo code"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
-                  className="flex-1 h-11 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                  className="flex-1 h-11 rounded-lg border border-border/70 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
                 />
-                <Button variant="secondary" className="h-11 px-6 font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Apply</Button>
+                <Button variant="secondary" className="h-11 px-6 font-semibold bg-muted hover:bg-muted/80 text-foreground">Apply</Button>
               </div>
 
-              <div className="border-t pt-6 mb-8">
+              <div className="border-t border-border/50 pt-6 mb-8">
                 <div className="text-sm text-muted-foreground font-medium mb-1">Total Amount</div>
                 <div className="text-3xl font-bold text-foreground">${total.toFixed(2)}</div>
               </div>
 
               <Link to="/checkout" className="w-full block mb-6">
-                <Button className="w-full h-12 sm:h-14 text-base font-semibold bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all rounded-xl">
+                <Button className="w-full h-12 sm:h-14 text-base font-semibold bg-blue-600 hover:bg-blue-700 transition-all rounded-xl">
                   Proceed to Checkout
                 </Button>
               </Link>
 
               <div className="flex flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5 font-medium text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5 font-medium text-muted-foreground">
                   <ShieldCheck className="h-4 w-4" /> SECURE PAYMENT
                 </div>
                 <span className="text-[10px]">Protected by 256-bit SSL encryption</span>
               </div>
             </div>
 
-            {/* Trust Badges */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-card shadow-sm hover:shadow-md transition-shadow cursor-default">
+              <div className="rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-muted/40">
                 <Truck className="h-5 w-5 text-blue-600" />
-                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Fast Delivery</span>
+                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-foreground/70">Fast Delivery</span>
               </div>
-              <div className="border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-card shadow-sm hover:shadow-md transition-shadow cursor-default">
+              <div className="rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 bg-muted/40">
                 <RotateCcw className="h-5 w-5 text-blue-600" />
-                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Easy Returns</span>
+                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-foreground/70">Easy Returns</span>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* ── RECOMMENDED SECTION ── */}
-        <div className="mt-24 pt-12 border-t">
+        <div className="mt-24 pt-12 border-t border-border/50">
           <div className="flex justify-between items-end mb-8">
             <h2 className="text-2xl font-bold tracking-tight">You might also like</h2>
             <Link to="/collections" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
@@ -237,7 +223,7 @@ export function Cart() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {recommendedProducts.map((product) => (
               <Link key={product.id} to={`/product/${product.id}`} className="group block">
-                <div className="rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 mb-4 h-48 sm:h-64 relative border border-slate-100 dark:border-slate-700">
+                <div className="rounded-xl overflow-hidden bg-muted/40 mb-4 h-48 sm:h-64 relative">
                   <img
                     src={product.image}
                     alt={product.name}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
 import { Search, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
@@ -27,8 +27,8 @@ export function AdminCategories() {
   const [editingCategory, setEditingCategory] = useState<ApiCategory | null>(null);
   const [form, setForm] = useState({ name: '', description: '' });
 
-  const loadCategories = async () => {
-    setIsLoading(true);
+  const loadCategories = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       setCategories(await categoryService.getAll());
     } catch (error) {
@@ -36,11 +36,27 @@ export function AdminCategories() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    let isCurrent = true;
+    categoryService.getAll()
+      .then((data) => {
+        if (isCurrent) setCategories(data);
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          dispatch(showError(getApiErrorMessage(error, 'Failed to load categories.')));
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [dispatch]);
 
   const filteredCategories = useMemo(() => {
     const query = search.toLowerCase();

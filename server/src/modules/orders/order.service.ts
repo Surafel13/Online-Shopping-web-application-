@@ -4,7 +4,11 @@ import { OrderRepository } from "./order.repo.js";
 import { UserProfileRepository } from "../users/user.repo.js";
 import { CartRepository } from "../cart/cart.repo.js";
 import type { IOrder } from "../../interface/order.interface.js";
-import {updateOrderStatusSchema, updatePaymentStatusSchema} from "./order.validation.js";
+import {
+  createOrderSchema,
+  updateOrderStatusSchema,
+  updatePaymentStatusSchema,
+} from "./order.validation.js";
 
 export class OrderService {
   private orderRepo = new OrderRepository();
@@ -12,6 +16,10 @@ export class OrderService {
   private cartRepo = new CartRepository();
 
   async createOrder(userId: string, addressId: string, paymentMethod: string) {
+    const validatedInput = createOrderSchema.parse({ addressId, paymentMethod });
+    addressId = validatedInput.addressId;
+    paymentMethod = validatedInput.paymentMethod;
+
     if (!Types.ObjectId.isValid(userId)) {
       throw new AppError("Invalid User Id", 400);
     }
@@ -27,7 +35,7 @@ export class OrderService {
     }
 
     const selectedAddress = user.addresses.find(
-      (address: any) => address._id?.toString() === addressId,
+      (address) => address._id?.toString() === addressId,
     );
 
     if (!selectedAddress) {

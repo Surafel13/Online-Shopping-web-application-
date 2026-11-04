@@ -10,7 +10,6 @@ import morganMiddleware from "./utils/logger/morgan.middleware.js";
 import { ErrorHandler } from "./middleware/error.middleware.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
 import {
-    globalRateLimit,
     authRateLimiter,
 } from "./utils/rateLimiter.middlware.js";
 

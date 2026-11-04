@@ -1,7 +1,8 @@
 import Product from "../../database/product.model.js";
+import type { IProduct } from "../../interface/product.interface.js";
 
 export class ProductRepo {
-  async createProduct(productData: any) {
+  async createProduct(productData: IProduct) {
     return await Product.create(productData);
   }
 
@@ -13,7 +14,7 @@ export class ProductRepo {
     return await Product.findById(productId);
   }
 
-  async updateProduct(productId: string, productData: any) {
+  async updateProduct(productId: string, productData: Partial<IProduct>) {
     return await Product.findByIdAndUpdate(productId, productData, {
       new: true,
     });

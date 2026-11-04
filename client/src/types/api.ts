@@ -18,6 +18,7 @@ export interface ApiUser {
   isActive: boolean;
   addresses?: ApiAddress[];
   profileImg?: string;
+  phone?: string;
   permissionCodes?: string[];
   createdAt?: string;
   updatedAt?: string;
@@ -51,6 +52,10 @@ export interface ApiAddress {
   state: string;
   postalCode: string;
   country: string;
+  fullName?: string;
+  phone?: string;
+  addressType?: "home" | "work" | "other";
+  isDefault?: boolean;
 }
 
 
@@ -107,6 +112,9 @@ export interface ApiProduct {
   name: string;
   description: string;
   price: number;
+  purchasePrice?: number;
+  finalPrice?: number;
+  discountPercentage?: number;
   category: string | ApiCategory;
   stock: number;
   images: string[];

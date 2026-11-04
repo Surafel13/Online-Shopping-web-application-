@@ -9,6 +9,7 @@ import { AppError } from "../utils/appError.utils.js";
 import { logger } from "../utils/logger/logger.winston.js";
 
 export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  void next;
   // Custom Application Errors
   if (err instanceof AppError) {
     logger.warn(`[${req.method}] ${req.originalUrl} - ${err.message}`);
@@ -22,7 +23,6 @@ export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res:
   // Zod Validation Errors
   if (err instanceof ZodError) {
     logger.warn(`[${req.method}] ${req.originalUrl} - Validation Error`);
-    console.log(err)
     return res.status(400).json({
       success: false,
       message: "Validation failed",

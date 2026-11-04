@@ -10,7 +10,6 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../redux/store';
 import { showError } from '../../redux/slices/uiSlice';
 import { getApiErrorMessage } from '../../lib/errors';
-import type { ApiUser } from '../../types/api';
 
 const staggerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -43,25 +42,21 @@ export function AdminAnalytics() {
   }, [orders]);
 
   const growthData = useMemo(() => {
-    const customerCounts = MONTHS.map((name) => ({ name, users: 0 }));
-    const seen = new Set<string>();
-
+    const firstSeenByUser = new Map<string, number>();
     orders.forEach((order) => {
-      if (!order.createdAt) return;
-      const user = typeof order.userId === 'object' ? (order.userId as ApiUser) : null;
-      if (!user) return;
+      if (!order.createdAt || typeof order.userId !== 'object') return;
       const monthIndex = new Date(order.createdAt).getMonth();
-      if (!seen.has(user._id)) {
-        seen.add(user._id);
-        customerCounts[monthIndex].users += 1;
+      const previousMonth = firstSeenByUser.get(order.userId._id);
+      if (previousMonth === undefined || monthIndex < previousMonth) {
+        firstSeenByUser.set(order.userId._id, monthIndex);
       }
     });
 
-    let cumulative = 0;
-    return customerCounts.map((entry) => {
-      cumulative += entry.users;
-      return { name: entry.name, users: cumulative };
-    });
+    return MONTHS.map((name, monthIndex) => ({
+      name,
+      users: [...firstSeenByUser.values()].filter((month) => month <= monthIndex)
+        .length,
+    }));
   }, [orders]);
 
   return (

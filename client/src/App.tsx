@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "./redux/store";
@@ -14,26 +14,26 @@ import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
 
 import { FeedbackToast } from "./components/shared/FeedbackToast";
 
-import { Home } from "./pages/Home";
-import { Collections } from "./pages/Collections";
-import { ProductDetail } from "./pages/ProductDetail";
-import { Cart } from "./pages/Cart";
-import { Checkout } from "./pages/Checkout";
-import { Categories } from "./pages/Categories";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { Profile } from "./pages/Profile";
-import { Orders } from "./pages/Orders";
-import { Wishlist } from "./pages/Wishlist";
+const Home = lazy(() => import("./pages/Home").then((module) => ({ default: module.Home })));
+const Collections = lazy(() => import("./pages/Collections").then((module) => ({ default: module.Collections })));
+const ProductDetail = lazy(() => import("./pages/ProductDetail").then((module) => ({ default: module.ProductDetail })));
+const Cart = lazy(() => import("./pages/Cart").then((module) => ({ default: module.Cart })));
+const Checkout = lazy(() => import("./pages/Checkout").then((module) => ({ default: module.Checkout })));
+const Categories = lazy(() => import("./pages/Categories").then((module) => ({ default: module.Categories })));
+const Login = lazy(() => import("./pages/Login").then((module) => ({ default: module.Login })));
+const Register = lazy(() => import("./pages/Register").then((module) => ({ default: module.Register })));
+const Profile = lazy(() => import("./pages/Profile").then((module) => ({ default: module.Profile })));
+const Orders = lazy(() => import("./pages/Orders").then((module) => ({ default: module.Orders })));
+const Wishlist = lazy(() => import("./pages/Wishlist").then((module) => ({ default: module.Wishlist })));
 
 import { AdminLayout } from "./components/layout/AdminLayout";
-import { AdminOverview } from "./pages/admin/AdminOverview";
-import { AdminProducts } from "./pages/admin/AdminProducts";
-import { AdminCategories } from "./pages/admin/AdminCategories";
-import { AdminOrders } from "./pages/admin/AdminOrders";
-import { AdminCustomers } from "./pages/admin/AdminCustomers";
-import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
-import { AdminSettings } from "./pages/admin/AdminSettings";
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview").then((module) => ({ default: module.AdminOverview })));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts").then((module) => ({ default: module.AdminProducts })));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories").then((module) => ({ default: module.AdminCategories })));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders").then((module) => ({ default: module.AdminOrders })));
+const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers").then((module) => ({ default: module.AdminCustomers })));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics").then((module) => ({ default: module.AdminAnalytics })));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings").then((module) => ({ default: module.AdminSettings })));
 
 import {
   AdminAddProduct,
@@ -54,9 +54,9 @@ import {
 } from "./pages/admin/AdminPlaceholderSections";
 
 import { SuperAdminLayout } from "./components/layout/SuperAdminLayout";
-import { SuperAdminOverview } from "./pages/superadmin/SuperAdminOverview";
-import { AdminManagement } from "./pages/superadmin/AdminManagement";
-import { PermissionsManagement } from "./pages/superadmin/PermissionsManagement";
+const SuperAdminOverview = lazy(() => import("./pages/superadmin/SuperAdminOverview").then((module) => ({ default: module.SuperAdminOverview })));
+const AdminManagement = lazy(() => import("./pages/superadmin/AdminManagement").then((module) => ({ default: module.AdminManagement })));
+const PermissionsManagement = lazy(() => import("./pages/superadmin/PermissionsManagement").then((module) => ({ default: module.PermissionsManagement })));
 
 import {
   SuperAdminUsers,
@@ -128,6 +128,17 @@ function App() {
       {!isAdminRoute && <Header />}
 
       <main className="flex-1">
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center">
+              <div
+                className="h-10 w-10 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+                role="status"
+                aria-label="Loading page"
+              />
+            </div>
+          }
+        >
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -301,6 +312,7 @@ function App() {
             <Route path="profile" element={<SuperAdminProfile />} />
           </Route>
         </Routes>
+        </Suspense>
       </main>
 
       {!isAdminRoute && <Footer />}

@@ -8,6 +8,7 @@ import {
   updateUserByAdmin,
   getProfile,
   updateProfile,
+  changePassword,
   deleteProfile,
   addAddress,
   updateAddress,
@@ -80,6 +81,7 @@ userRouter.patch(
   upload.single("image"),
   updateProfile,
 );
+userRouter.patch("/profile/password", changePassword);
 
 /**
  * @swagger

@@ -3,7 +3,10 @@ import Permission from "../../database/permission.model.js";
 import Role from "../../database/role.model.js";
 import Users from "../../database/users.model.js";
 import { AppError } from "../../utils/appError.utils.js";
-import { permissionCode } from "../rbac/rbac.constants.js";
+import {
+  permissionCode,
+  type PermissionModule,
+} from "../rbac/rbac.constants.js";
 
 const assertId = (id: string, label: string) => {
   if (!Types.ObjectId.isValid(id))
@@ -24,25 +27,25 @@ export class PermissionService {
 
     const roleCount = new Map<string, number>();
     const adminCount = new Map<string, number>();
-    roles.forEach((r: any) =>
-      (r.permissions ?? []).forEach((id: any) => bump(roleCount, String(id))),
+    roles.forEach((role) =>
+      (role.permissions ?? []).forEach((id) => bump(roleCount, String(id))),
     );
-    admins.forEach((a: any) =>
-      (a.directPermissions ?? []).forEach((id: any) =>
+    admins.forEach((admin) =>
+      (admin.directPermissions ?? []).forEach((id) =>
         bump(adminCount, String(id)),
       ),
     );
 
-    return permissions.map((p: any) => ({
-      ...p,
-      roleCount: roleCount.get(String(p._id)) ?? 0,
-      adminCount: adminCount.get(String(p._id)) ?? 0,
+    return permissions.map((permission) => ({
+      ...permission,
+      roleCount: roleCount.get(String(permission._id)) ?? 0,
+      adminCount: adminCount.get(String(permission._id)) ?? 0,
     }));
   }
 
   async createPermission(data: {
     name: string;
-    module: string;
+    module: PermissionModule;
     action: string;
     description: string;
   }) {
@@ -57,13 +60,13 @@ export class PermissionService {
     id: string,
     data: {
       name?: string;
-      module?: string;
+      module?: PermissionModule;
       action?: string;
       description?: string;
     },
   ) {
     assertId(id, "permission");
-    const permission: any = await Permission.findById(id);
+    const permission = await Permission.findById(id);
     if (!permission) throw new AppError("Permission not found", 404);
 
     if (data.name !== undefined) permission.name = data.name;
@@ -96,7 +99,7 @@ export class PermissionService {
 
   async deletePermission(id: string) {
     assertId(id, "permission");
-    const permission: any = await Permission.findById(id);
+    const permission = await Permission.findById(id);
     if (!permission) throw new AppError("Permission not found", 404);
     if (permission.isSystem)
       throw new AppError("System permissions cannot be deleted", 400);
@@ -114,16 +117,16 @@ export class PermissionService {
   // ---------- Roles ----------
   private async assertPermissions(ids: string[]) {
     const unique = [...new Set(ids)];
-    if (!unique.length) return unique;
+    if (!unique.length) return [];
     const count = await Permission.countDocuments({ _id: { $in: unique } });
     if (count !== unique.length)
       throw new AppError("One or more permissions do not exist", 400);
-    return unique;
+    return unique.map((id) => new Types.ObjectId(id));
   }
 
   private async getRole(id: string) {
     assertId(id, "role");
-    const role: any = await Role.findById(id)
+    const role = await Role.findById(id)
       .populate("permissions", "name code module action")
       .lean();
     if (!role) throw new AppError("Role not found", 404);
@@ -146,11 +149,11 @@ export class PermissionService {
       ]),
     ]);
     const map = new Map<string, number>(
-      counts.map((c: any) => [String(c._id), c.count]),
+      counts.map((count) => [String(count._id), count.count]),
     );
-    return roles.map((r: any) => ({
-      ...r,
-      adminCount: map.get(String(r._id)) ?? 0,
+    return roles.map((role) => ({
+      ...role,
+      adminCount: map.get(String(role._id)) ?? 0,
     }));
   }
 
@@ -177,7 +180,7 @@ export class PermissionService {
     data: { name?: string; description?: string; permissionIds?: string[] },
   ) {
     assertId(id, "role");
-    const role: any = await Role.findById(id);
+    const role = await Role.findById(id);
     if (!role) throw new AppError("Role not found", 404);
     if (role.isSystem)
       throw new AppError("System roles cannot be modified", 400);
@@ -198,7 +201,7 @@ export class PermissionService {
 
   async deleteRole(id: string) {
     assertId(id, "role");
-    const role: any = await Role.findById(id);
+    const role = await Role.findById(id);
     if (!role) throw new AppError("Role not found", 404);
     if (role.isSystem)
       throw new AppError("System roles cannot be deleted", 400);

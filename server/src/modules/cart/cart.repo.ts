@@ -1,7 +1,9 @@
 import Cart from "../../database/cart.model.js";
+import type { HydratedDocument } from "mongoose";
+import type { ICart } from "../../interface/cart.interface.js";
 
 export class CartRepository {
-  async createCart(cartData: any) {
+  async createCart(cartData: ICart) {
     return await Cart.create(cartData);
   }
 
@@ -13,7 +15,7 @@ export class CartRepository {
     return await Cart.findById(cartId);
   }
 
-  async saveCart(cart: any) {
+  async saveCart(cart: HydratedDocument<ICart>) {
     return await cart.save();
   }
 

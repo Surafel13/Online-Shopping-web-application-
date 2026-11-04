@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
@@ -23,6 +23,7 @@ const emptyForm = {
   name: '',
   description: '',
   price: '',
+  purchasePrice: '',
   category: '',
   stock: '',
 };
@@ -41,8 +42,8 @@ export function AdminProducts() {
 
   const categoryMap = useMemo(() => buildCategoryMap(categories), [categories]);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const [productData, categoryData] = await Promise.all([
         productService.getAll(),
@@ -55,11 +56,29 @@ export function AdminProducts() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    let isCurrent = true;
+    Promise.all([productService.getAll(), categoryService.getAll()])
+      .then(([productData, categoryData]) => {
+        if (!isCurrent) return;
+        setProducts(productData);
+        setCategories(categoryData);
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          dispatch(showError(getApiErrorMessage(error, 'Failed to load products.')));
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [dispatch]);
 
   const filteredProducts = useMemo(() => {
     const query = search.toLowerCase();
@@ -85,6 +104,7 @@ export function AdminProducts() {
       name: product.name,
       description: product.description,
       price: String(product.price),
+      purchasePrice: String(product.purchasePrice ?? ''),
       category: String(product.category),
       stock: String(product.stock),
     });
@@ -101,6 +121,7 @@ export function AdminProducts() {
       formData.append('name', form.name);
       formData.append('description', form.description);
       formData.append('price', form.price);
+      formData.append('purchasePrice', form.purchasePrice);
       formData.append('category', form.category);
       formData.append('stock', form.stock);
       if (imageFile) formData.append('image', imageFile);
@@ -240,7 +261,11 @@ export function AdminProducts() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Price</label>
-                <Input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+                <Input type="number" min="0.01" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Purchase Price</label>
+                <Input type="number" min="0" step="0.01" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} required />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Stock</label>

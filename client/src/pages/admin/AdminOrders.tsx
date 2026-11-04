@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
 import { Search, Filter, MoreHorizontal, Eye, Clock, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react';
@@ -74,8 +74,8 @@ export function AdminOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-  const loadOrders = async () => {
-    setIsLoading(true);
+  const loadOrders = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const data = await orderService.getAll();
       setOrders(data.map(mapOrder));
@@ -84,11 +84,27 @@ export function AdminOrders() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    let isCurrent = true;
+    orderService.getAll()
+      .then((data) => {
+        if (isCurrent) setOrders(data.map(mapOrder));
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          dispatch(showError(getApiErrorMessage(error, 'Failed to load orders.')));
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [dispatch]);
 
   const filteredOrders = useMemo(() => {
     const query = search.toLowerCase();

@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { requireApiList, requireApiValue } from './api';
 import type { ApiOrder, ApiResponse, OrderStatus, PaymentStatus } from '../types/api';
 
 export const orderService = {
@@ -7,29 +7,29 @@ export const orderService = {
       addressId,
       paymentMethod,
     });
-    return data.order!;
+    return requireApiValue(data.order, 'order');
   },
 
   async getMyOrders() {
     const { data } = await apiClient.get<ApiResponse<ApiOrder[]>>('/orders/me');
-    return data.orders || [];
+    return requireApiList(data.orders, 'orders');
   },
 
   async getAll() {
     const { data } = await apiClient.get<ApiResponse<ApiOrder[]>>('/orders');
-    return data.orders || [];
+    return requireApiList(data.orders, 'orders');
   },
 
   async getById(orderId: string) {
     const { data } = await apiClient.get<ApiResponse<ApiOrder>>(`/orders/${orderId}`);
-    return data.order!;
+    return requireApiValue(data.order, 'order');
   },
 
   async updateStatus(orderId: string, orderStatus: OrderStatus) {
     const { data } = await apiClient.patch<ApiResponse<ApiOrder>>(`/orders/${orderId}/status`, {
       orderStatus,
     });
-    return data.order!;
+    return requireApiValue(data.order, 'order');
   },
 
   async updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus) {
@@ -37,7 +37,7 @@ export const orderService = {
       `/orders/${orderId}/payment-status`,
       { paymentStatus },
     );
-    return data.order!;
+    return requireApiValue(data.order, 'order');
   },
 
   async remove(orderId: string) {

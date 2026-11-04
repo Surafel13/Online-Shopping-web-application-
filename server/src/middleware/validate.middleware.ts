@@ -1,7 +1,7 @@
-import type{ Request, Response, NextFunction } from "express";
-import { ZodType } from "zod";
+import type { Request, Response, NextFunction } from "express";
+import type { ZodType } from "zod";
 
-export const validate = (schema: ZodType<any, any, any>) => {
+export const validate = (schema: ZodType) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       let filePaths: string[] = [];

@@ -9,6 +9,27 @@ const apiClient = axios.create({
   },
 });
 
+export function requireApiValue<T>(
+  value: T | null | undefined,
+  field: string,
+): T {
+  if (value === null || value === undefined) {
+    throw new Error(`API response did not include ${field}.`);
+  }
+  return value;
+}
+
+export function requireApiList<T>(
+  value: T[] | null | undefined,
+  field: string,
+): T[] {
+  const result = requireApiValue(value, field);
+  if (!Array.isArray(result)) {
+    throw new Error(`API response field "${field}" was not a list.`);
+  }
+  return result;
+}
+
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');

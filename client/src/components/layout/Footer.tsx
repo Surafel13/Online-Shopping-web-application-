@@ -14,7 +14,7 @@ export function Footer() {
               </span>
             </div>
             <span className="font-extrabold text-xl tracking-tight">
-              Nexa Commerce
+              Sheger Gebeya
             </span>
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
@@ -184,7 +184,7 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="container px-4 sm:px-6 max-w-screen-2xl mx-auto mt-16 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground font-medium">
-        <p>© 2026 Nexa Commerce. All rights reserved.</p>
+        <p>© 2026 Sheger Gebeya. All rights reserved.</p>
         <div className="flex items-center space-x-6">
           <Link to="/security" className="hover:text-primary transition-colors">
             Security

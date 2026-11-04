@@ -17,18 +17,23 @@ export function AdminSettings() {
   const { user } = useSelector((state: RootState) => state.auth);
   const [username, setUsername] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [storeName, setStoreName] = useState('Nexa Commerce');
+  const [storeName, setStoreName] = useState("Sheger Gebeya");
 
   useEffect(() => {
-    profileService.getProfile().then((profile) => {
-      setUsername(profile.username);
-      setEmail(profile.email);
-    });
-  }, []);
+    profileService
+      .getProfile()
+      .then((profile) => {
+        setUsername(profile.username);
+        setEmail(profile.email);
+      })
+      .catch((error: unknown) => {
+        dispatch(showError(getApiErrorMessage(error, 'Failed to load profile.')));
+      });
+  }, [dispatch]);
 
   const handleSaveProfile = async () => {
     try {
-      const profile = await profileService.updateProfile({ username, email });
+      const profile = await profileService.updateProfile({ fullName: username, email });
       dispatch(updateAuthUser({ name: profile.username, email: profile.email }));
       dispatch(showSuccess('Profile updated successfully.'));
     } catch (error) {

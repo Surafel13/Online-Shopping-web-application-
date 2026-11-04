@@ -2,12 +2,13 @@ import mongoose from "mongoose";
 import ReviewRepository from "./review.repository.js";
 import ProductRepo  from "../product/product.repo.js";
 import type { IReview } from "../../interface/review.interface.js";
+import { AppError } from "../../utils/appError.utils.js";
 
 class ReviewService {
   // Validate MongoDB ObjectId
   private validateId(id: string, field: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error(`Invalid ${field} ID.`);
+      throw new AppError(`Invalid ${field} ID.`, 400);
     }
   }
 
@@ -34,14 +35,14 @@ class ReviewService {
     const product = await ProductRepo.findById(productId);
 
     if (!product || !product.isActive) {
-      return ("Product not found or unavailable.");
+      throw new AppError("Product not found or unavailable.", 404);
     }
 
     const existingReview =
       await ReviewRepository.findByUserAndProduct(userId, productId);
 
     if (existingReview) {
-      throw new Error("You have already reviewed this product.");
+      throw new AppError("You have already reviewed this product.", 409);
     }
 
     const review = await ReviewRepository.create({
@@ -66,7 +67,7 @@ class ReviewService {
     const review = await ReviewRepository.findById(reviewId);
 
     if (!review || !review.isActive) {
-      throw new Error("Review not found.");
+      throw new AppError("Review not found.", 404);
     }
 
     return review;
@@ -79,7 +80,7 @@ class ReviewService {
     const product = await ProductRepo.findById(productId);
 
     if (!product || !product.isActive) {
-      throw new Error("Product not found.");
+      throw new AppError("Product not found.", 404);
     }
 
     const reviews = await ReviewRepository.findByProduct(productId);
@@ -110,11 +111,11 @@ class ReviewService {
     const review = await ReviewRepository.findById(reviewId);
 
     if (!review || !review.isActive) {
-      throw new Error("Review not found.");
+      throw new AppError("Review not found.", 404);
     }
 
     if (review.user.toString() !== userId) {
-      throw new Error("You are not authorized to update this review.");
+      throw new AppError("You are not authorized to update this review.", 403);
     }
 
     const updatedReview = await ReviewRepository.update(reviewId, {
@@ -124,7 +125,7 @@ class ReviewService {
     });
 
     if (!updatedReview) {
-      throw new Error("Failed to update review.");
+      throw new AppError("Failed to update review.", 500);
     }
 
     await this.updateProductRating(review.product.toString());
@@ -140,17 +141,17 @@ class ReviewService {
     const review = await ReviewRepository.findById(reviewId);
 
     if (!review || !review.isActive) {
-      throw new Error("Review not found.");
+      throw new AppError("Review not found.", 404);
     }
 
     if (review.user.toString() !== userId) {
-      throw new Error("You are not authorized to delete this review.");
+      throw new AppError("You are not authorized to delete this review.", 403);
     }
 
     const deletedReview = await ReviewRepository.delete(reviewId);
 
     if (!deletedReview) {
-      throw new Error("Failed to delete review.");
+      throw new AppError("Failed to delete review.", 500);
     }
 
     await this.updateProductRating(review.product.toString());

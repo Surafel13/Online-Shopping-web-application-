@@ -1,25 +1,25 @@
-import apiClient from './api';
+import apiClient, { requireApiList, requireApiValue } from './api';
 import type { ApiProduct, ApiResponse } from '../types/api';
 
 export const productService = {
   async getAll() {
     const { data } = await apiClient.get<ApiResponse<ApiProduct[]>>('/products');
-    return data.data || [];
+    return requireApiList(data.data, 'products');
   },
 
   async getById(id: string) {
     const { data } = await apiClient.get<ApiResponse<ApiProduct>>(`/products/${id}`);
-    return data.data!;
+    return requireApiValue(data.data, 'product');
   },
 
   async create(formData: FormData) {
     const { data } = await apiClient.post<ApiResponse<ApiProduct>>('/products', formData);
-    return data.data!;
+    return requireApiValue(data.data, 'product');
   },
 
   async update(id: string, formData: FormData) {
     const { data } = await apiClient.put<ApiResponse<ApiProduct>>(`/products/${id}`, formData);
-    return data.data!;
+    return requireApiValue(data.data, 'product');
   },
 
   async remove(id: string) {

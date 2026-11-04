@@ -15,6 +15,10 @@ import {
 import { Link } from "react-router-dom";
 import { Input } from "../components/ui/input";
 import { orderService } from "../services";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../redux/store";
+import { showError } from "../redux/slices/uiSlice";
+import { getApiErrorMessage } from "../lib/errors";
 import {
   formatOrderDate,
   getProductFromRef,
@@ -94,6 +98,7 @@ function mapOrderForUi(order: ApiOrder) {
 }
 
 export function Orders() {
+  const dispatch = useDispatch<AppDispatch>();
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [orders, setOrders] = useState<ReturnType<typeof mapOrderForUi>[]>([]);
@@ -103,8 +108,11 @@ export function Orders() {
     orderService
       .getMyOrders()
       .then((data) => setOrders(data.map(mapOrderForUi)))
+      .catch((error: unknown) => {
+        dispatch(showError(getApiErrorMessage(error, "Unable to load your orders.")));
+      })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [dispatch]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {

@@ -1,13 +1,14 @@
 import { CartService } from "./cart.service.js";
 import asyncHandler from "express-async-handler";
 import type { Request, Response } from "express";
+import { getAuthenticatedUser } from "../../middleware/auth.middleware.js";
 
 const cartService = new CartService();
 
 export const addItemToCart = asyncHandler(
   async (req: Request, res: Response) => {
     const { productId, quantity } = req.body;
-    const userId = req.user.id as string
+    const userId = getAuthenticatedUser(req).id;
 
 
     const cart = await cartService.addItemToCart(userId, productId, quantity);
@@ -21,7 +22,7 @@ export const addItemToCart = asyncHandler(
 
 export const getCartByUserId = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
 
     const cart = await cartService.getCartByUserId(userId);
 
@@ -46,7 +47,7 @@ export const getCartById = asyncHandler(async (req: Request, res: Response) => {
 export const removeItemFromCart = asyncHandler(
   async (req: Request, res: Response) => {
     const { productId } = req.body;
-    const userId = req.user.id as string
+    const userId = getAuthenticatedUser(req).id;
 
     const cart = await cartService.removeItemFromCart(userId, productId);
 
@@ -60,7 +61,7 @@ export const removeItemFromCart = asyncHandler(
 export const updateItemQuantity = asyncHandler(
   async (req: Request, res: Response) => {
     const { productId, quantity } = req.body;
-    const userId = req.user.id as string
+    const userId = getAuthenticatedUser(req).id;
     
     const cart = await cartService.updateItemQuantity(
       userId,

@@ -2,6 +2,7 @@ import { UserProfileService } from "./user.service.js";
 import type { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { getEffectivePermissionCodes } from "../rbac/rbac.service.js";
+import { getAuthenticatedUser } from "../../middleware/auth.middleware.js";
 
 const userProfileService = new UserProfileService();
 
@@ -29,7 +30,7 @@ export const updateUserByAdmin = asyncHandler(
 );
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id as string;
+  const userId = getAuthenticatedUser(req).id;
   const user = await userProfileService.getUserProfile(userId);
   const permissionCodes = await getEffectivePermissionCodes(userId);
 
@@ -41,9 +42,9 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateProfile = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
 
-    const updateData: any = { ...req.body };
+    const updateData: Record<string, unknown> = { ...req.body };
 
     // convert form-data types if needed
     if (updateData.isActive !== undefined) {
@@ -52,7 +53,7 @@ export const updateProfile = asyncHandler(
 
     // add image from multer/cloudinary
     if (req.file) {
-      updateData.profileImg = (req.file as any).path;
+      updateData.profileImg = req.file.path;
     }
 
     const user = await userProfileService.updateProfile(userId, updateData);
@@ -64,10 +65,21 @@ export const updateProfile = asyncHandler(
   },
 );
 
+export const changePassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = getAuthenticatedUser(req).id;
+    await userProfileService.changePassword(userId, req.body);
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully.",
+    });
+  },
+);
+
 // DELETE PROFILE
 export const deleteProfile = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
 
     await userProfileService.deleteProfile(userId);
 
@@ -80,7 +92,7 @@ export const deleteProfile = asyncHandler(
 
 // ADD ADDRESS
 export const addAddress = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id as string;
+  const userId = getAuthenticatedUser(req).id;
 
   const user = await userProfileService.addAddress(userId, req.body);
 
@@ -93,7 +105,7 @@ export const addAddress = asyncHandler(async (req: Request, res: Response) => {
 // UPDATE ADDRESS
 export const updateAddress = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
     const addressId = req.params.addressId as string;
 
     const user = await userProfileService.updateAddress(
@@ -112,7 +124,7 @@ export const updateAddress = asyncHandler(
 // DELETE ADDRESS
 export const deleteAddress = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
     const addressId = req.params.addressId as string;
 
     const user = await userProfileService.deleteAddress(userId, addressId);

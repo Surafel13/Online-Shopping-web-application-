@@ -19,10 +19,7 @@ import { ProductCard } from "../components/shared/ProductCard";
 import { ProductReviews } from "../components/shared/ProductReviews";
 import type { ProductType } from "../components/shared/ProductCard";
 import { productService, categoryService } from "../services";
-import {
-  buildCategoryMap,
-  mapApiProductToProductType,
-} from "../lib/mappers";
+import { buildCategoryMap, mapApiProductToProductType } from "../lib/mappers";
 import type { ApiProduct } from "../types/api";
 import type { AppDispatch, RootState } from "../redux/store";
 import { addToCartAsync } from "../redux/slices/cartSlice";
@@ -41,6 +38,7 @@ export function ProductDetail() {
   const [apiProduct, setApiProduct] = useState<ApiProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("Description");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -72,7 +70,7 @@ export function ProductDetail() {
             .map((entry) => mapApiProductToProductType(entry, categoryMap)),
         );
       } catch {
-        dispatch(showError("Unable to load product details."));
+        setLoadError("Unable to load product details. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -87,7 +85,7 @@ export function ProductDetail() {
     }
   }, [dispatch, isAuthenticated]);
 
-  if (isLoading || !apiProduct) {
+  if (isLoading) {
     return (
       <PageTransition>
         <div className="container px-4 sm:px-6 py-20 max-w-screen-xl mx-auto">
@@ -105,13 +103,32 @@ export function ProductDetail() {
     );
   }
 
+  if (!apiProduct) {
+    return (
+      <PageTransition>
+        <div className="container mx-auto max-w-screen-xl px-4 py-20 text-center">
+          <p className="mb-5 text-sm text-red-600 dark:text-red-400" role="alert">
+            {loadError || "Product details are unavailable."}
+          </p>
+          <Link to="/collections">
+            <Button variant="outline">Browse products</Button>
+          </Link>
+        </div>
+      </PageTransition>
+    );
+  }
+
   const rating = apiProduct.rating ?? 0;
   const reviews = apiProduct.reviewCount ?? 0;
   const product = {
     id: apiProduct._id,
     name: apiProduct.name,
-    price: apiProduct.price,
-    originalPrice: undefined as number | undefined,
+    price: apiProduct.finalPrice ?? apiProduct.price,
+    originalPrice:
+      apiProduct.finalPrice !== undefined &&
+      apiProduct.finalPrice < apiProduct.price
+        ? apiProduct.price
+        : undefined,
     rating,
     reviews,
     description: apiProduct.description,
@@ -161,7 +178,6 @@ export function ProductDetail() {
   return (
     <PageTransition>
       <div className="container px-4 sm:px-6 py-8 md:py-12 max-w-screen-xl mx-auto selection:bg-blue-500/20">
-        {/* Breadcrumb Navigation */}
         <nav
           aria-label="Breadcrumb"
           className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-8"
@@ -182,11 +198,8 @@ export function ProductDetail() {
           </span>
         </nav>
 
-        {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          {/* Left: Gallery */}
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
-            {/* Thumbnails */}
             {product.images.length > 1 && (
               <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto sm:w-24 shrink-0 pb-2 sm:pb-0">
                 {product.images.map((image, index) => (
@@ -209,8 +222,7 @@ export function ProductDetail() {
                 ))}
               </div>
             )}
-            {/* Main Preview Image */}
-            <div className="flex-1 aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted shadow-lg border border-border/50 relative group">
+            <div className="flex-1 aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted relative group">
               <img
                 src={activeImage}
                 alt={product.name}
@@ -219,7 +231,7 @@ export function ProductDetail() {
               <div className="absolute top-4 right-4 flex items-center gap-2">
                 <button
                   onClick={handleWishlist}
-                  className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-md border border-border/50 flex items-center justify-center text-foreground shadow-sm hover:bg-background transition-all duration-300 hover:scale-105"
+                  className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background transition-all duration-300 hover:scale-105"
                   aria-label="Wishlist"
                 >
                   <Heart
@@ -235,15 +247,14 @@ export function ProductDetail() {
             </div>
           </div>
 
-          {/* Right: Product Info & Actions */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="flex items-center justify-between gap-4 mb-3">
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide",
                   product.inStock
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "bg-red-500/10 text-red-600 dark:text-red-400",
                 )}
               >
                 <span
@@ -256,7 +267,7 @@ export function ProductDetail() {
                 />
                 {product.inStock ? "In Stock & Ready" : "Out of Stock"}
               </span>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/60">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Heart className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 <span className="text-foreground">{product.rating}</span>
                 <span>({product.reviews} reviews)</span>
@@ -282,10 +293,9 @@ export function ProductDetail() {
               {product.description}
             </p>
 
-            {/* Quantity & Add to Cart */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-4">
-                <div className="flex items-center border border-border/80 rounded-xl bg-background h-14 w-36 shrink-0 shadow-sm overflow-hidden">
+                <div className="flex items-center border border-border/70 rounded-xl bg-background h-14 w-36 shrink-0 overflow-hidden">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="w-12 h-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors font-medium text-lg"
@@ -314,11 +324,10 @@ export function ProductDetail() {
                 </Button>
               </div>
 
-              {/* Secondary Actions */}
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  className="h-12 rounded-xl border-border/80 font-medium hover:bg-muted/60 transition-colors"
+                  className="h-12 rounded-xl border-border/70 font-medium hover:bg-muted/60 transition-colors"
                   onClick={handleWishlist}
                 >
                   <Heart
@@ -331,7 +340,7 @@ export function ProductDetail() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-12 rounded-xl border-border/80 font-medium hover:bg-muted/60 transition-colors"
+                  className="h-12 rounded-xl border-border/70 font-medium hover:bg-muted/60 transition-colors"
                 >
                   <Scale className="mr-2 h-4 w-4 text-muted-foreground" />{" "}
                   Compare
@@ -339,8 +348,7 @@ export function ProductDetail() {
               </div>
             </div>
 
-            {/* Value Props / Trust Badges Box */}
-            <div className="flex flex-col gap-4 p-5 bg-card border border-border/60 rounded-2xl shadow-sm text-sm">
+            <div className="flex flex-col gap-4 text-sm">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-600">
                   <Truck className="h-5 w-5" />
@@ -371,7 +379,6 @@ export function ProductDetail() {
           </div>
         </div>
 
-        {/* Tabs Section */}
         <div className="mt-24">
           <div className="flex border-b border-border/60 mb-8 overflow-x-auto">
             {["Description", "Specifications", `Reviews (${reviews})`].map(
@@ -399,29 +406,42 @@ export function ProductDetail() {
             )}
           </div>
 
-          <div className="max-w-4xl bg-card p-8 sm:p-10 rounded-3xl border border-border/60 shadow-sm">
-            <h2 className="text-2xl font-bold tracking-tight mb-4">
-              Uncompromising Performance & Design
-            </h2>
-            <p className="text-muted-foreground text-base leading-relaxed mb-6">
-              {product.description}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/50 text-sm">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <ShieldCheck className="h-4 w-4 text-blue-600" /> Premium grade
-                certified materials
+          {activeTab === "Description" && (
+            <div className="max-w-4xl">
+              <h2 className="text-2xl font-bold tracking-tight mb-4">
+                Product Description
+              </h2>
+              <div className="text-muted-foreground text-base leading-relaxed whitespace-pre-line">
+                {apiProduct.description ||
+                  "No description available for this product."}
               </div>
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Sparkles className="h-4 w-4 text-blue-600" /> Handcrafted
-                precision and finish
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 mt-6 border-t border-border/50 text-sm">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <ShieldCheck className="h-4 w-4 text-blue-600" /> Premium
+                  grade certified materials
+                </div>
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Sparkles className="h-4 w-4 text-blue-600" /> Handcrafted
+                  precision and finish
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === "Specifications" && (
+            <div className="max-w-4xl">
+              <h2 className="text-2xl font-bold tracking-tight mb-4">
+                Specifications
+              </h2>
+              <p className="text-muted-foreground text-base leading-relaxed">
+                Specification details are not available for this product.
+              </p>
+            </div>
+          )}
         </div>
 
         <Separator className="my-20" />
 
-        {/* Complete the Look / Related Products */}
         <div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
             <div>

@@ -1,14 +1,28 @@
 import axios from 'axios';
-import apiClient from './api';
+import apiClient, { requireApiList, requireApiValue } from './api';
 import type { ApiCart, ApiResponse } from '../types/api';
 
 export const cartService = {
   async getUserCart() {
     try {
       const { data } = await apiClient.get<ApiResponse<ApiCart>>('/cart/user');
-      return data.data!;
+      return requireApiValue(data.data, 'cart');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      const responseBody: unknown = axios.isAxiosError(error)
+        ? error.response?.data
+        : undefined;
+      const message =
+        typeof responseBody === 'object' &&
+        responseBody !== null &&
+        'message' in responseBody &&
+        typeof responseBody.message === 'string'
+          ? responseBody.message
+          : null;
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 404 &&
+        message === 'Cart not found'
+      ) {
         return null;
       }
       throw error;
@@ -20,7 +34,7 @@ export const cartService = {
       productId,
       quantity,
     });
-    return data.data!;
+    return requireApiValue(data.data, 'cart');
   },
 
   async updateItem(productId: string, quantity: number) {
@@ -28,18 +42,18 @@ export const cartService = {
       productId,
       quantity,
     });
-    return data.data!;
+    return requireApiValue(data.data, 'cart');
   },
 
   async removeItem(productId: string) {
     const { data } = await apiClient.delete<ApiResponse<ApiCart>>('/cart/items', {
       data: { productId },
     });
-    return data.data!;
+    return requireApiValue(data.data, 'cart');
   },
 
   async getAllCarts() {
     const { data } = await apiClient.get<ApiResponse<ApiCart[]>>('/cart');
-    return data.data || [];
+    return requireApiList(data.data, 'carts');
   },
 };

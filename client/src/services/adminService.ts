@@ -15,17 +15,12 @@ export interface AdminDashboardStats {
 
 export const adminService = {
   async getDashboardStats(): Promise<AdminDashboardStats> {
-    const [o, p, u, c] = await Promise.allSettled([
+    const [orders, products, users, carts] = await Promise.all([
       orderService.getAll(),
       productService.getAll(),
       userService.getAllUsers(),
       cartService.getAllCarts(),
     ]);
-
-    const orders = o.status === 'fulfilled' ? o.value : [];
-    const products = p.status === 'fulfilled' ? p.value : [];
-    const users = u.status === 'fulfilled' ? u.value : [];
-    const carts = c.status === 'fulfilled' ? c.value : [];
 
     const revenue = orders.reduce(
       (sum, order) => sum + order.totalAmount,

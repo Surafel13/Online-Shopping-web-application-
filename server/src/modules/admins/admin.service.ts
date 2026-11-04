@@ -4,6 +4,7 @@ import Users from "../../database/users.model.js";
 import Role from "../../database/role.model.js";
 import Permission from "../../database/permission.model.js";
 import { AppError } from "../../utils/appError.utils.js";
+import type { PopulateOptions } from "mongoose";
 import type { AdminStatus } from "../rbac/rbac.constants.js";
 import type {
   CreateAdminInput,
@@ -11,7 +12,7 @@ import type {
   UpdateAdminAccessInput,
 } from "./admin.validation.js";
 
-const POPULATE: any[] = [
+const POPULATE: PopulateOptions[] = [
   {
     path: "adminRole",
     select: "name description isSystem permissions",
@@ -20,17 +21,42 @@ const POPULATE: any[] = [
   { path: "directPermissions", select: "name code module action" },
 ];
 
-const serialize = (u: any) => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const permissionCodes = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.flatMap((permission) =>
+        isRecord(permission) && typeof permission.code === "string"
+          ? [permission.code]
+          : [],
+      )
+    : [];
+
+const serialize = (value: unknown) => {
+  if (!isRecord(value)) {
+    throw new AppError("Invalid admin record", 500);
+  }
   const status: AdminStatus =
-    u.status ?? (u.isActive === false ? "inactive" : "active");
+    value.status === "active" ||
+    value.status === "suspended" ||
+    value.status === "inactive"
+      ? value.status
+      : value.isActive === false
+        ? "inactive"
+        : "active";
+  const adminRole = isRecord(value.adminRole) ? value.adminRole : null;
+  const directPermissions = Array.isArray(value.directPermissions)
+    ? value.directPermissions
+    : [];
   const codes = new Set<string>();
-  (u.adminRole?.permissions ?? []).forEach((p: any) => codes.add(p.code));
-  (u.directPermissions ?? []).forEach((p: any) => codes.add(p.code));
+  permissionCodes(adminRole?.permissions).forEach((code) => codes.add(code));
+  permissionCodes(directPermissions).forEach((code) => codes.add(code));
   return {
-    ...u,
+    ...value,
     status,
-    adminRole: u.adminRole ?? null,
-    directPermissions: u.directPermissions ?? [],
+    adminRole,
+    directPermissions,
     effectivePermissions: [...codes].sort(),
   };
 };
@@ -90,10 +116,12 @@ export class AdminService {
       role: "admin",
       status: data.status,
       isActive: data.status === "active",
-      adminRole: data.roleId ?? null,
-      directPermissions: [...new Set(data.permissionIds)],
+      adminRole: data.roleId ? new Types.ObjectId(data.roleId) : null,
+      directPermissions: [...new Set(data.permissionIds)].map(
+        (permissionId) => new Types.ObjectId(permissionId),
+      ),
       addresses: [],
-    } as any);
+    });
 
     return this.findAdmin(admin._id.toString());
   }

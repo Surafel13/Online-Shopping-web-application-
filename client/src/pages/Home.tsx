@@ -84,7 +84,6 @@ export function Home() {
           "-=0.3",
         );
 
-      // Parallax on hero image
       gsap.to(".hero-img", {
         yPercent: 15,
         ease: "none",
@@ -103,10 +102,10 @@ export function Home() {
   return (
     <PageTransition>
       <div className="flex flex-col w-full selection:bg-blue-500/20">
-        {/* Top Banner */}
+        {/* Announcement bar */}
         <aside
           aria-label="Announcement"
-          className="relative z-30 w-full bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white py-3 px-4 text-center text-xs sm:text-sm font-medium tracking-wide shadow-sm"
+          className="relative z-30 w-full bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white py-3 px-4 text-center text-xs sm:text-sm font-medium tracking-wide"
         >
           <div className="container flex items-center justify-center gap-2">
             <span>✨ Free express shipping on orders over $150</span>
@@ -120,7 +119,7 @@ export function Home() {
           </div>
         </aside>
 
-        {/* ─── HERO SECTION ─── */}
+        {/* Hero */}
         <section
           ref={heroRef}
           className="relative min-h-[92vh] flex items-center justify-center overflow-hidden py-24 lg:py-0"
@@ -132,7 +131,7 @@ export function Home() {
             className="hero-img absolute inset-0 w-full h-full object-cover object-center scale-110 select-none"
           />
           <div className="relative z-20 text-center text-white px-4 sm:px-6 max-w-5xl mx-auto w-full">
-            <span className="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-medium uppercase tracking-[0.25em] px-5 py-2.5 rounded-full mb-8 shadow-lg shadow-black/10">
+            <span className="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-medium uppercase tracking-[0.25em] px-5 py-2.5 rounded-full mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
               Spring / Summer 2024
             </span>
@@ -143,7 +142,7 @@ export function Home() {
                 By Modernity
               </span>
             </h1>
-            <p className="hero-sub text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+            <p className="hero-sub text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
               Discover our curated collection of sustainably sourced essentials
               designed for the conscious professional.
             </p>
@@ -151,10 +150,9 @@ export function Home() {
               <Link to="/collections" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-white text-gray-900 hover:bg-white/95 h-14 px-8 text-base font-semibold shadow-2xl shadow-white/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full sm:w-auto bg-white text-gray-900 hover:bg-white/95 h-14 px-8 text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Shop The Collection{" "}
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  Shop The Collection <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/collections" className="w-full sm:w-auto">
@@ -168,7 +166,6 @@ export function Home() {
               </Link>
             </div>
           </div>
-          {/* Scroll indicator */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-2 text-white/60 pointer-events-none">
             <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
               Scroll
@@ -177,12 +174,12 @@ export function Home() {
           </div>
         </section>
 
-        {/* ─── TRUST BADGES ─── */}
+        {/* Trust strip */}
         <section
           aria-label="Features"
-          className="border-y border-border/50 bg-card/50 backdrop-blur-sm py-10 relative z-20"
+          className="border-y border-border/50 py-10"
         >
-          <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
             {[
               {
                 icon: "🚚",
@@ -205,28 +202,21 @@ export function Home() {
                 sub: "Eco-conscious packaging",
               },
             ].map((badge) => (
-              <div
-                key={badge.title}
-                className="flex items-start sm:items-center gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-muted/50 group cursor-default"
-              >
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform duration-300">
-                  {badge.icon}
-                </div>
-                <div className="space-y-0.5">
-                  <h4 className="font-semibold text-sm sm:text-base tracking-tight">
+              <div key={badge.title} className="flex items-center gap-3">
+                <span className="text-2xl shrink-0">{badge.icon}</span>
+                <div>
+                  <h4 className="font-semibold text-sm tracking-tight">
                     {badge.title}
                   </h4>
-                  <p className="text-xs text-muted-foreground leading-normal">
-                    {badge.sub}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{badge.sub}</p>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ─── CATEGORIES ─── */}
-        <section ref={categoriesRef} className="py-24 lg:py-32 bg-background">
+        {/* Categories */}
+        <section ref={categoriesRef} className="py-24 lg:py-32">
           <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto">
             <div className="scroll-anim text-center max-w-2xl mx-auto mb-16">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-3 block">
@@ -245,7 +235,7 @@ export function Home() {
                 <Link
                   key={cat.id}
                   to={`/collections?category=${encodeURIComponent(cat.name)}`}
-                  className="scroll-anim group relative aspect-[4/5] sm:aspect-[3/4] rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-muted"
+                  className="scroll-anim group relative aspect-[4/5] sm:aspect-[3/4] rounded-3xl overflow-hidden bg-muted"
                 >
                   <img
                     src={cat.image}
@@ -253,7 +243,7 @@ export function Home() {
                     className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent transition-opacity duration-300 group-hover:opacity-90" />
-                  <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-white flex flex-col justify-end">
+                  <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-white">
                     <h3 className="font-bold text-xl sm:text-2xl mb-1.5 tracking-tight group-hover:translate-x-1 transition-transform duration-300">
                       {cat.name}
                     </h3>
@@ -268,10 +258,10 @@ export function Home() {
           </div>
         </section>
 
-        {/* ─── BEST SELLERS ─── */}
+        {/* Best sellers */}
         <section
           ref={bestsellersRef}
-          className="py-24 lg:py-32 bg-muted/30 border-y border-border/40"
+          className="py-24 lg:py-32 border-y border-border/40 overflow-hidden"
         >
           <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto">
             <div className="scroll-anim flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-16">
@@ -291,35 +281,66 @@ export function Home() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-              {isLoading
-                ? Array.from({ length: 4 }).map((_, index) => (
+          </div>
+
+          {/* Auto-scrolling marquee */}
+          <div className="relative w-full">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 z-10 bg-gradient-to-r from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 z-10 bg-gradient-to-l from-background to-transparent" />
+
+            {isLoading ? (
+              <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="scroll-anim aspect-[4/5] rounded-2xl bg-muted animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="best-seller-viewport px-4 sm:px-6 lg:px-10">
+                <div className="best-seller-marquee flex w-max gap-6 lg:gap-8">
+                  {[...bestSellers, ...bestSellers].map((product, index) => (
                     <div
-                      key={index}
-                      className="scroll-anim aspect-[4/5] rounded-2xl bg-muted animate-pulse shadow-sm"
-                    />
-                  ))
-                : bestSellers.map((product) => (
-                    <div
-                      key={product.id}
-                      className="scroll-anim transition-transform duration-300 hover:-translate-y-1"
+                      key={`${product.id}-${index}`}
+                      className="w-[260px] sm:w-[300px] lg:w-[320px] shrink-0 transition-transform duration-300 hover:-translate-y-1"
                     >
                       <ProductCard product={product} />
                     </div>
                   ))}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
+
+          <style>{`
+    @keyframes best-seller-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .best-seller-viewport {
+      overflow: hidden;
+    }
+    .best-seller-marquee {
+      animation: best-seller-scroll 30s linear infinite;
+    }
+    .best-seller-marquee:hover {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .best-seller-marquee {
+        animation: none;
+      }
+    }
+  `}</style>
         </section>
 
-        {/* ─── PROMO BANNER ─── */}
-        <section
-          ref={promoRef}
-          className="py-24 lg:py-32 bg-background overflow-hidden"
-        >
+        {/* Promo */}
+        <section ref={promoRef} className="py-24 lg:py-32 overflow-hidden">
           <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto">
-            <div className="scroll-anim relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-900 shadow-2xl flex flex-col lg:flex-row items-center border border-white/10">
+            <div className="scroll-anim relative rounded-[2.5rem] overflow-hidden bg-gray-950 flex flex-col lg:flex-row items-stretch">
               <div className="flex-1 p-8 sm:p-12 lg:p-20 text-white z-10">
-                <span className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full border border-blue-500/20 mb-6">
+                <span className="inline-flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                   Limited Edition
                 </span>
@@ -330,20 +351,20 @@ export function Home() {
                     Has Arrived
                   </span>
                 </h2>
-                <p className="text-white/70 text-base sm:text-lg mb-10 max-w-lg leading-relaxed font-normal">
+                <p className="text-white/70 text-base sm:text-lg mb-10 max-w-lg leading-relaxed">
                   Performance meets luxury. Our signature outerwear line
                   engineered with recycled materials and cutting-edge design.
                 </p>
                 <Link to="/collections">
                   <Button
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/30 h-14 px-8 text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-8 text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     Shop Aura Collection <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               </div>
-              <div className="scroll-anim w-full lg:w-1/2 h-80 sm:h-96 lg:h-auto lg:min-h-[520px] relative overflow-hidden">
+              <div className="w-full lg:w-1/2 h-80 sm:h-96 lg:h-auto relative overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800&auto=format&fit=crop"
                   alt="Aura Collection"
@@ -355,18 +376,18 @@ export function Home() {
           </div>
         </section>
 
-        {/* ─── NEWSLETTER ─── */}
+        {/* Newsletter */}
         <section
           ref={newsletterRef}
-          className="py-24 lg:py-32 bg-muted/30 border-t border-border/40"
+          className="py-24 lg:py-32 border-t border-border/40"
         >
           <div className="container px-4 sm:px-6 max-w-screen-xl mx-auto">
-            <div className="scroll-anim text-center max-w-2xl mx-auto bg-card border border-border/60 p-8 sm:p-12 lg:p-16 rounded-[2.5rem] shadow-lg shadow-black/5">
+            <div className="scroll-anim text-center max-w-2xl mx-auto">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-3 block">
                 Stay Connected
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
-                Join the Nexa Community
+                Join the Sheger Gebeya
               </h2>
               <p className="text-muted-foreground text-base sm:text-lg mb-8 leading-relaxed">
                 Subscribe to receive exclusive access to new arrivals, limited
@@ -384,7 +405,7 @@ export function Home() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/25 shrink-0 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shrink-0 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Subscribe <Send className="ml-2 h-4 w-4" />
                 </Button>

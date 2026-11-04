@@ -35,7 +35,7 @@ const shopLink = (name: string) =>
 
 function CategorySkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+    <div className="animate-pulse overflow-hidden rounded-2xl bg-card">
       <div className="aspect-[4/3] bg-muted" />
       <div className="space-y-3 p-5">
         <div className="h-4 w-2/3 rounded-full bg-muted" />
@@ -50,7 +50,7 @@ function CategoryCard({ category }: { category: CategoryCardData }) {
   return (
     <Link
       to={shopLink(category.name)}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted/40">
         {category.image ? (
@@ -65,7 +65,8 @@ function CategoryCard({ category }: { category: CategoryCardData }) {
             <Tag className="h-10 w-10 opacity-60" />
           </div>
         )}
-        <span className="absolute left-3 top-3 rounded-full border border-border/50 bg-background/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-90" />
+        <span className="absolute left-3 top-3 rounded-full bg-background/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">
           {category.count} {category.count === 1 ? "product" : "products"}
         </span>
       </div>
@@ -163,8 +164,7 @@ export function Categories() {
 
   return (
     <PageTransition>
-      {/* Header */}
-      <div className="border-b border-border/50 bg-gradient-to-b from-muted/50 to-background">
+      <div className="bg-gradient-to-b from-muted/30 to-background border-b border-border/40">
         <div className="container mx-auto max-w-screen-xl px-4 py-12 sm:px-6">
           <nav
             aria-label="Breadcrumb"
@@ -188,8 +188,7 @@ export function Categories() {
       </div>
 
       <div className="container mx-auto max-w-screen-xl px-4 py-10 sm:px-6">
-        {/* Toolbar */}
-        <div className="mb-8 flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-3 shadow-sm sm:flex-row sm:items-center">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -198,7 +197,7 @@ export function Categories() {
               placeholder="Search categories..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-10 text-sm font-medium transition-all focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
+              className="h-12 w-full rounded-xl border border-border/70 bg-card pl-10 pr-10 text-sm font-medium transition-all focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
             />
             {search && (
               <button
@@ -214,7 +213,7 @@ export function Categories() {
             aria-label="Sort categories"
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="h-11 cursor-pointer rounded-xl border border-border bg-background px-4 text-sm font-semibold transition-all focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
+            className="h-12 cursor-pointer rounded-xl border border-border/70 bg-card px-4 text-sm font-semibold transition-all focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -224,7 +223,6 @@ export function Categories() {
           </select>
         </div>
 
-        {/* Content */}
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -232,7 +230,7 @@ export function Categories() {
             ))}
           </div>
         ) : error ? (
-          <div className="mx-auto max-w-md rounded-3xl border border-border/60 bg-card px-8 py-16 text-center shadow-sm">
+          <div className="mx-auto max-w-md px-8 py-16 text-center">
             <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
             <h3 className="mb-1 text-lg font-semibold">
               Unable to load categories
@@ -246,7 +244,7 @@ export function Categories() {
             </Button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="rounded-3xl border border-border/60 bg-card px-8 py-20 text-center shadow-sm">
+          <div className="px-8 py-20 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
               <Search className="h-8 w-8 opacity-40" />
             </div>

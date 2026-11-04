@@ -1,11 +1,12 @@
 import type { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { OrderService } from "./order.service.js";
+import { getAuthenticatedUser } from "../../middleware/auth.middleware.js";
 
 const orderService = new OrderService();
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id as string;
+  const userId = getAuthenticatedUser(req).id;
 
   const { addressId, paymentMethod } = req.body;
 
@@ -36,7 +37,7 @@ export const getOrderById = asyncHandler(
 
 export const getUserOrders = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.id as string;
+    const userId = getAuthenticatedUser(req).id;
 
     const orders = await orderService.getUserOrders(userId);
 

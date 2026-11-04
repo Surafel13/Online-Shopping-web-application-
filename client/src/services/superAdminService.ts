@@ -1,4 +1,4 @@
-import apiClient from "./api";
+import apiClient, { requireApiList, requireApiValue } from "./api";
 import type {
   AdminStatus,
   ApiAdmin,
@@ -9,14 +9,14 @@ import type {
 } from "../types/api";
 
 const list = async <T>(url: string) =>
-  (await apiClient.get<ApiResponse<T[]>>(url)).data.data ?? [];
+  requireApiList((await apiClient.get<ApiResponse<T[]>>(url)).data.data, "list");
 
 export const superAdminService = {
   async getOverview() {
     const { data } = await apiClient.get<ApiResponse<SuperAdminOverview>>(
       "/super-admin/overview",
     );
-    return data.data!;
+    return requireApiValue(data.data, "overview");
   },
 
   // Admins
@@ -33,7 +33,7 @@ export const superAdminService = {
       "/super-admin/admins",
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "admin");
   },
   async updateAdmin(
     id: string,
@@ -43,14 +43,14 @@ export const superAdminService = {
       `/super-admin/admins/${id}`,
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "admin");
   },
   async updateAdminStatus(id: string, status: AdminStatus) {
     const { data } = await apiClient.patch<ApiResponse<ApiAdmin>>(
       `/super-admin/admins/${id}/status`,
       { status },
     );
-    return data.data!;
+    return requireApiValue(data.data, "admin");
   },
   async updateAdminAccess(
     id: string,
@@ -60,7 +60,7 @@ export const superAdminService = {
       `/super-admin/admins/${id}/access`,
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "admin");
   },
 
   // Permissions
@@ -75,7 +75,7 @@ export const superAdminService = {
       "/super-admin/permissions",
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "permission");
   },
   async updatePermission(
     id: string,
@@ -90,7 +90,7 @@ export const superAdminService = {
       `/super-admin/permissions/${id}`,
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "permission");
   },
   async deletePermission(id: string) {
     await apiClient.delete(`/super-admin/permissions/${id}`);
@@ -107,7 +107,7 @@ export const superAdminService = {
       "/super-admin/roles",
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "role");
   },
   async updateRole(
     id: string,
@@ -121,7 +121,7 @@ export const superAdminService = {
       `/super-admin/roles/${id}`,
       payload,
     );
-    return data.data!;
+    return requireApiValue(data.data, "role");
   },
   async deleteRole(id: string) {
     await apiClient.delete(`/super-admin/roles/${id}`);

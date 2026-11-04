@@ -1,11 +1,12 @@
 import type { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { WishlistService } from "./wishlist.service.js";
+import { getAuthenticatedUser } from "../../middleware/auth.middleware.js";
 
 const wishlistService = new WishlistService();
 
 export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = getAuthenticatedUser(req).id;
 
   const wishlist = await wishlistService.getWishlist(userId);
 
@@ -16,7 +17,7 @@ export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const addToWishlist = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = getAuthenticatedUser(req).id;
   const productId = req.body.productId as string;
 
   const wishlist = await wishlistService.addToWishlist(userId, productId);
@@ -28,7 +29,7 @@ export const addToWishlist = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const removeFromWishlist = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = getAuthenticatedUser(req).id;
   const productId = req.params.productId as string;
 
   const wishlist = await wishlistService.removeFromWishlist(userId, productId);
@@ -40,7 +41,7 @@ export const removeFromWishlist = asyncHandler(async (req: Request, res: Respons
 });
 
 export const clearWishlist = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id ;
+  const userId = getAuthenticatedUser(req).id;
 
   const wishlist = await wishlistService.clearWishlist(userId);
 

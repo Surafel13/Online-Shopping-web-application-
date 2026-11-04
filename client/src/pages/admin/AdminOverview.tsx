@@ -29,27 +29,11 @@ export function AdminOverview() {
     async function loadDashboard() {
       setIsLoading(true);
       try {
-        const [statsRes, ordersRes, productsRes] = await Promise.allSettled([
+        const [dashboardStats, orders, products] = await Promise.all([
           adminService.getDashboardStats(),
           orderService.getAll(),
           productService.getAll(),
         ]);
-
-        const dashboardStats =
-          statsRes.status === 'fulfilled'
-            ? statsRes.value
-            : {
-                revenue: 0,
-                orderCount: 0,
-                customerCount: 0,
-                avgOrderValue: 0,
-              };
-
-        const orders =
-          ordersRes.status === 'fulfilled' ? ordersRes.value : [];
-
-        const products =
-          productsRes.status === 'fulfilled' ? productsRes.value : [];
 
         setStats({
           revenue: dashboardStats.revenue,

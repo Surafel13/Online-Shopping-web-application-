@@ -10,7 +10,6 @@ import {
 import { productService, categoryService } from '../services';
 import { buildCategoryMap, mapApiProductToProductType } from '../lib/mappers';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
   id: string;
   name: string;
@@ -36,7 +35,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'rating',    label: 'Top Rated'       },
 ];
 
-// ─── Star Rating ───────────────────────────────────────────────────────────────
 const StarRow = ({ rating, size = 3.5 }: { rating: number; size?: number }) => (
   <div className="flex items-center gap-0.5" aria-label={`Rating: ${rating} out of 5 stars`}>
     {[1, 2, 3, 4, 5].map(i => (
@@ -49,9 +47,8 @@ const StarRow = ({ rating, size = 3.5 }: { rating: number; size?: number }) => (
   </div>
 );
 
-// ─── Skeleton Card ─────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
-  <div className="border border-border/60 rounded-2xl bg-card overflow-hidden animate-pulse shadow-sm">
+  <div className="rounded-2xl bg-card overflow-hidden animate-pulse">
     <div className="bg-muted h-64 w-full" />
     <div className="p-5 space-y-3">
       <div className="h-3 bg-muted rounded-full w-1/4" />
@@ -65,7 +62,6 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ─── Product Card (Grid) ──────────────────────────────────────────────────────
 const ProductCardGrid = ({ product }: { product: Product }) => {
   const [wishlisted, setWishlisted] = useState(false);
   const discount = product.originalPrice
@@ -79,9 +75,8 @@ const ProductCardGrid = ({ product }: { product: Product }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.25 }}
-      className="group border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+      className="group rounded-2xl bg-card overflow-hidden transition-all duration-300 flex flex-col justify-between hover:shadow-xl"
     >
-      {/* Image Container */}
       <div className="relative overflow-hidden bg-muted/40 aspect-[4/5]">
         <img
           src={product.image}
@@ -89,7 +84,6 @@ const ProductCardGrid = ({ product }: { product: Product }) => {
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
           loading="lazy"
         />
-        {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {product.isNew && (
             <span className="inline-flex items-center gap-1 bg-blue-600 text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider shadow-sm">
@@ -108,16 +102,14 @@ const ProductCardGrid = ({ product }: { product: Product }) => {
           )}
         </div>
 
-        {/* Wishlist Button */}
         <button
           onClick={() => setWishlisted(w => !w)}
-          className="absolute top-3 right-3 h-9 w-9 rounded-full bg-background/80 backdrop-blur-md border border-border/50 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+          className="absolute top-3 right-3 h-9 w-9 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
           aria-label="Save to Wishlist"
         >
           <Heart className={`h-4 w-4 transition-colors ${wishlisted ? 'text-red-500 fill-red-500' : 'text-foreground/70'}`} />
         </button>
 
-        {/* Quick Add Overlay */}
         <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-background/90 via-background/40 to-transparent">
           <Link to={`/product/${product.id}`}>
             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2.5 rounded-xl shadow-lg shadow-blue-600/20">
@@ -127,7 +119,6 @@ const ProductCardGrid = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      {/* Info Container */}
       <div className="p-5 flex flex-col flex-1 justify-between">
         <div>
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] mb-1.5">{product.category}</p>
@@ -158,7 +149,6 @@ const ProductCardGrid = ({ product }: { product: Product }) => {
   );
 };
 
-// ─── Product Card (List) ──────────────────────────────────────────────────────
 const ProductCardList = ({ product }: { product: Product }) => {
   const [wishlisted, setWishlisted] = useState(false);
   const discount = product.originalPrice
@@ -172,7 +162,7 @@ const ProductCardList = ({ product }: { product: Product }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 12 }}
       transition={{ duration: 0.22 }}
-      className="group border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row"
+      className="group rounded-2xl bg-card overflow-hidden transition-all duration-300 flex flex-col sm:flex-row hover:shadow-xl"
     >
       <div className="relative sm:w-56 shrink-0 bg-muted/40 aspect-[4/3] sm:aspect-auto overflow-hidden">
         <img
@@ -240,7 +230,6 @@ const ProductCardList = ({ product }: { product: Product }) => {
   );
 };
 
-// ─── Sidebar Filter Section ────────────────────────────────────────────────────
 const FilterSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="space-y-3">
     <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/80">{title}</h4>
@@ -248,12 +237,12 @@ const FilterSection = ({ title, children }: { title: string; children: React.Rea
   </div>
 );
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
 export function Collections() {
   const [searchParams] = useSearchParams();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<string[]>(['All Products']);
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch]               = useState('');
   const [category, setCategory]           = useState(searchParams.get('category') || 'All Products');
   const [sort, setSort]                   = useState<SortKey>('newest');
@@ -269,10 +258,8 @@ export function Collections() {
   const itemsPerPage = 12;
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [search, category, sort, priceRange, inStockOnly, onSaleOnly, newOnly, minRating]);
+    let isCurrent = true;
 
-  useEffect(() => {
     async function loadProducts() {
       try {
         const [products, categories] = await Promise.all([
@@ -299,23 +286,37 @@ export function Collections() {
             };
           }),
         );
+      } catch {
+        if (isCurrent) {
+          setLoadError('Unable to load products. Please try again later.');
+        }
       } finally {
-        setIsPageLoading(false);
+        if (isCurrent) setIsPageLoading(false);
       }
     }
 
-    loadProducts();
+    void loadProducts();
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   const triggerFilter = useCallback((fn: () => void) => {
+    setCurrentPage(1);
     setIsFiltering(true);
     fn();
     setTimeout(() => setIsFiltering(false), 250);
   }, []);
 
   const clearAll = () => {
+    setCurrentPage(1);
     setSearch(''); setCategory('All Products'); setPriceRange([0, 2000]);
     setInStockOnly(false); setOnSaleOnly(false); setNewOnly(false); setMinRating(0);
+  };
+
+  const clearSearch = () => {
+    setCurrentPage(1);
+    setSearch('');
   };
 
   const filtered = useMemo(() => {
@@ -350,7 +351,6 @@ export function Collections() {
     minRating > 0, priceRange[0] > 0 || priceRange[1] < 2000
   ].filter(Boolean).length;
 
-  // ── Sidebar content ────────────────────────────────────────────────────────
   const SidebarContent = () => (
     <div className="space-y-8">
       <FilterSection title="Categories">
@@ -379,7 +379,7 @@ export function Collections() {
             onChange={e => triggerFilter(() => setPriceRange([priceRange[0], +e.target.value]))}
             className="w-full accent-blue-600 cursor-pointer"
           />
-          <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold bg-muted/50 p-2.5 rounded-xl border border-border/50">
+          <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold bg-muted/50 p-2.5 rounded-xl">
             <span>${priceRange[0]}</span>
             <span>—</span>
             <span>${priceRange[1] >= 2000 ? '$2,000+' : priceRange[1]}</span>
@@ -392,9 +392,9 @@ export function Collections() {
       <FilterSection title="Availability & Offers">
         <div className="space-y-3">
           {[
-            { label: 'In Stock Only',     val: inStockOnly, set: setInStockOnly },
-            { label: 'On Sale Items',      val: onSaleOnly,  set: setOnSaleOnly  },
-            { label: 'New Arrivals',       val: newOnly,      set: setNewOnly     },
+            { label: 'In Stock Only', val: inStockOnly, set: setInStockOnly },
+            { label: 'On Sale Items',  val: onSaleOnly,  set: setOnSaleOnly  },
+            { label: 'New Arrivals',   val: newOnly,      set: setNewOnly     },
           ].map(({ label, val, set }) => (
             <label key={label} className="flex items-center gap-3 cursor-pointer group">
               <span className={`h-4 w-4 rounded-md border flex items-center justify-center transition-colors ${val ? 'border-blue-600 bg-blue-600 text-white' : 'border-border group-hover:border-blue-500/50 bg-background'}`}>
@@ -436,10 +436,8 @@ export function Collections() {
 
   return (
     <PageTransition>
-      {/* ── Page Header ─────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-b from-muted/50 to-background border-b border-border/50">
+      <div className="bg-gradient-to-b from-muted/30 to-background border-b border-border/40">
         <div className="container max-w-screen-xl mx-auto px-4 sm:px-6 py-12">
-          {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <ChevronRight className="h-3.5 w-3.5 opacity-50" />
@@ -457,9 +455,8 @@ export function Collections() {
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-10">
 
-          {/* ── SIDEBAR (desktop) ──────────────────────────────────────────── */}
           <aside className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-24 bg-card border border-border/60 p-6 rounded-3xl shadow-sm">
+            <div className="sticky top-24 bg-card p-6 rounded-3xl shadow-sm">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/60">
                 <div className="flex items-center gap-2.5">
                   <SlidersVertical className="h-4 w-4 text-blue-600" />
@@ -469,11 +466,10 @@ export function Collections() {
                   <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">{activeFiltersCount}</span>
                 )}
               </div>
-              <SidebarContent />
+              {SidebarContent()}
             </div>
           </aside>
 
-          {/* ── MOBILE FILTER DRAWER ──────────────────────────────────────── */}
           <AnimatePresence>
             {mobileFiltersOpen && (
               <>
@@ -489,51 +485,48 @@ export function Collections() {
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <SidebarContent />
+                  {SidebarContent()}
                 </motion.div>
               </>
             )}
           </AnimatePresence>
 
-          {/* ── MAIN CONTENT ───────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-card border border-border/60 p-4 rounded-2xl shadow-sm">
-              {/* Search */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="search"
                   placeholder="Search products by title or category..."
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full h-12 pl-10 pr-10 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all"
+                  onChange={e => {
+                    setCurrentPage(1);
+                    setSearch(e.target.value);
+                  }}
+                  className="w-full h-12 pl-10 pr-10 rounded-xl border border-border/70 bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all"
                 />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button onClick={clearSearch} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Mobile filter trigger */}
-                <Button variant="outline" className="lg:hidden flex items-center gap-2 h-12 px-4 rounded-xl border-border font-semibold flex-1 sm:flex-none" onClick={() => setMobileFiltersOpen(true)}>
+                <Button variant="outline" className="lg:hidden flex items-center gap-2 h-12 px-4 rounded-xl border-border font-semibold flex-1 sm:flex-none bg-card" onClick={() => setMobileFiltersOpen(true)}>
                   <SlidersHorizontal className="h-4 w-4" />
                   Filters {activeFiltersCount > 0 && <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{activeFiltersCount}</span>}
                 </Button>
 
-                {/* Sort */}
                 <select
                   value={sort}
                   onChange={e => triggerFilter(() => setSort(e.target.value as SortKey))}
-                  className="h-12 rounded-xl border border-border bg-background px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all cursor-pointer flex-1 sm:flex-none"
+                  className="h-12 rounded-xl border border-border/70 bg-card px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all cursor-pointer flex-1 sm:flex-none"
                 >
                   {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
 
-                {/* View toggle */}
-                <div className="hidden sm:flex items-center border border-border rounded-xl overflow-hidden bg-background shrink-0">
+                <div className="hidden sm:flex items-center border border-border/70 rounded-xl overflow-hidden bg-card shrink-0">
                   <button onClick={() => setViewMode('grid')} className={`h-12 w-12 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-muted-foreground hover:bg-muted'}`} aria-label="Grid View">
                     <LayoutGrid className="h-4 w-4" />
                   </button>
@@ -544,33 +537,35 @@ export function Collections() {
               </div>
             </div>
 
-            {/* Active Filters Bar */}
             <div className="flex flex-wrap items-center gap-2 mb-6">
               <p className="text-sm font-medium text-muted-foreground">
                 Showing <span className="font-bold text-foreground">{filtered.length}</span> {filtered.length === 1 ? 'product' : 'products'}
                 {category !== 'All Products' && <> in <span className="font-bold text-foreground">{category}</span></>}
               </p>
               {search && (
-                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
-                  "{search}" <button onClick={() => setSearch('')} className="hover:opacity-75"><X className="h-3 w-3" /></button>
+                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
+                  "{search}" <button onClick={clearSearch} className="hover:opacity-75"><X className="h-3 w-3" /></button>
                 </span>
               )}
               {minRating > 0 && (
-                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
-                  {minRating}★ & up <button onClick={() => setMinRating(0)} className="hover:opacity-75"><X className="h-3 w-3" /></button>
+                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
+                  {minRating}★ & up <button onClick={() => triggerFilter(() => setMinRating(0))} className="hover:opacity-75"><X className="h-3 w-3" /></button>
                 </span>
               )}
             </div>
 
-            {/* Grid / List Display */}
             <AnimatePresence mode="wait">
-              {isPageLoading || isFiltering ? (
+              {loadError ? (
+                <motion.div key="error" role="alert" className="rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center text-sm text-red-600 dark:text-red-400">
+                  {loadError}
+                </motion.div>
+              ) : isPageLoading || isFiltering ? (
                 <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6' : 'flex flex-col gap-4'}>
                   {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
                 </motion.div>
               ) : filtered.length === 0 ? (
-                <motion.div key="empty" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center py-24 bg-card border border-border/60 rounded-3xl p-8 shadow-sm">
+                <motion.div key="empty" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center py-24 rounded-3xl p-8">
                   <div className="w-16 h-16 bg-muted/60 rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
                     <Search className="h-8 w-8 opacity-40" />
                   </div>
@@ -599,10 +594,9 @@ export function Collections() {
               )}
             </AnimatePresence>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-16 flex flex-col items-center gap-4">
-                <div className="flex items-center gap-1.5 bg-card border border-border/60 p-2 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-1.5 p-1.5 rounded-2xl">
                   <Button
                     variant="outline"
                     size="icon"

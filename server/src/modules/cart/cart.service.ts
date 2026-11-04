@@ -1,6 +1,7 @@
 import { CartRepository } from "./cart.repo.js";
 import { AppError } from "../../utils/appError.utils.js";
 import Product from "../../database/product.model.js";
+import { Types } from "mongoose";
 
 export class CartService {
   private cartRepo = new CartRepository();
@@ -10,9 +11,10 @@ export class CartService {
     productId: string,
     quantity: number
   ) {
+    this.validateQuantity(quantity);
     const product = await Product.findById(productId);
 
-    if (!product) {
+    if (!product || !product.isActive) {
       throw new AppError("Product not found", 404);
     }
 
@@ -20,7 +22,7 @@ export class CartService {
 
     if (!cart) {
       cart = await this.cartRepo.createCart({
-        userId,
+        userId: new Types.ObjectId(userId),
         items: [],
         totalAmount: 0,
         totalItems: 0,
@@ -31,13 +33,18 @@ export class CartService {
       (item) => item.productId.toString() === productId
     );
 
+    const updatedQuantity = (existingItem?.quantity ?? 0) + quantity;
+    if (updatedQuantity > product.stock) {
+      throw new AppError("Requested quantity exceeds available stock.", 400);
+    }
+
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
       cart.items.push({
         productId: product._id,
         quantity,
-        price: product.price,
+        price: product.finalPrice ?? product.price,
       });
     }
 
@@ -103,6 +110,7 @@ export class CartService {
     productId: string,
     quantity: number
   ) {
+    this.validateQuantity(quantity);
     const cart = await this.cartRepo.getCartByUserId(userId);
 
     if (!cart) {
@@ -115,6 +123,14 @@ export class CartService {
 
     if (!item) {
       throw new AppError("Item not found in cart", 404);
+    }
+
+    const product = await Product.findById(productId);
+    if (!product || !product.isActive) {
+      throw new AppError("Product not found", 404);
+    }
+    if (quantity > product.stock) {
+      throw new AppError("Requested quantity exceeds available stock.", 400);
     }
 
     item.quantity = quantity;
@@ -154,5 +170,11 @@ export class CartService {
 
   async getAllCarts() {
     return await this.cartRepo.getAllCarts();
+  }
+
+  private validateQuantity(quantity: number) {
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      throw new AppError("Quantity must be a positive whole number.", 400);
+    }
   }
 }

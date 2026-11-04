@@ -3,6 +3,7 @@ import { authService } from '../../services/authService';
 import { profileService } from '../../services/profileService';
 import { mapUserToAuth } from '../../lib/mappers';
 import { getApiErrorMessage } from '../../lib/errors';
+import type { ILogin, IRegister } from '../../types/user.types';
 
 export interface AuthUser {
   id: string;
@@ -33,9 +34,9 @@ const initialState: AuthState = {
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+  async (credentials: ILogin, { rejectWithValue }) => {
     try {
-      const result = await authService.login(email, password);
+      const result = await authService.login(credentials);
       localStorage.setItem('token', result.token);
       return { user: mapUserToAuth(result.user), token: result.token };
     } catch (error) {
@@ -47,11 +48,11 @@ export const loginUser = createAsyncThunk(
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (
-    { username, email, password }: { username: string; email: string; password: string },
+    registration: IRegister,
     { rejectWithValue },
   ) => {
     try {
-      const result = await authService.signup(username, email, password);
+      const result = await authService.signup(registration);
       localStorage.setItem('token', result.token);
       return { user: mapUserToAuth(result.user), token: result.token };
     } catch (error) {

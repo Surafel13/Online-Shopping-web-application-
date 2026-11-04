@@ -40,7 +40,7 @@ async function seed() {
       .select("_id code")
       .lean();
     const pick = (fn: (code: string) => boolean) =>
-      all.filter((p: any) => fn(p.code)).map((p: any) => p._id);
+      all.filter((permission) => fn(permission.code)).map((permission) => permission._id);
 
     const roles = [
       {
@@ -84,7 +84,10 @@ async function seed() {
     }
 
     // Migration: existing admins keep today's full access
-    const full: any = await Role.findOne({ name: "Store Admin" });
+    const full = await Role.findOne({ name: "Store Admin" });
+    if (!full) {
+      throw new Error("Store Admin role was not created.");
+    }
     const res = await Users.updateMany(
       {
         role: "admin",

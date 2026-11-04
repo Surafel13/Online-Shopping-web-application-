@@ -21,14 +21,6 @@ const CATEGORY_IMAGES = [
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop';
 
-export function getProductMeta(id: string) {
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return {
-    rating: 4 + (hash % 10) / 10,
-    reviews: 10 + (hash % 200),
-  };
-}
-
 export function resolveCategoryName(
   category: string | ApiCategory,
   categoryMap: Map<string, string>,
@@ -41,18 +33,21 @@ export function mapApiProductToProductType(
   product: ApiProduct,
   categoryMap: Map<string, string> = new Map(),
 ): ProductType {
-  const { rating, reviews } = getProductMeta(product._id);
   const createdAt = product.createdAt ? new Date(product.createdAt).getTime() : 0;
   const isNew = createdAt > Date.now() - 30 * 24 * 60 * 60 * 1000;
 
   return {
     id: product._id,
     name: product.name,
-    price: product.price,
+    price: product.finalPrice ?? product.price,
+    originalPrice:
+      product.finalPrice !== undefined && product.finalPrice < product.price
+        ? product.price
+        : undefined,
     image: product.images?.[0] || PLACEHOLDER_IMAGE,
     category: resolveCategoryName(product.category, categoryMap),
-    rating,
-    reviews,
+    rating: product.rating ?? 0,
+    reviews: product.reviewCount ?? 0,
     isNew,
     isOutOfStock: product.stock <= 0,
   };

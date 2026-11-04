@@ -2,12 +2,25 @@ import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/appError.utils.js";
 import Users from "../database/users.model.js";
+import type { Types } from "mongoose";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
+interface AuthenticatedUser {
+  id: string;
+  _id: Types.ObjectId;
+  role: "customer" | "admin" | "super_admin";
+  isActive: boolean;
+}
+
+export const getAuthenticatedUser = (req: Request): AuthenticatedUser => {
+  if (!req.user) {
+    throw new AppError("Authentication required. Please sign in or login", 401);
+  }
+  return req.user;
+};
+
+declare module "express" {
+  interface Request {
+    user?: AuthenticatedUser;
   }
 }
 
@@ -60,12 +73,12 @@ export const authMiddleware = async (
       throw new AppError("User not found", 401);
     }
 
-        if (!user.isActive) {
-          throw new AppError(
-            "Your account has been deactivated or suspended. Please contact support.",
-            401,
-          );
-        }
+    if (!user.isActive) {
+      throw new AppError(
+        "Your account has been deactivated or suspended. Please contact support.",
+        401,
+      );
+    }
 
     req.user = user;
 

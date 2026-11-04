@@ -3,6 +3,14 @@ import type { IUser } from "../interface/user.interface.js";
 import { ADMIN_STATUSES } from "../modules/rbac/rbac.constants.js";
 
 const addressSchema = new mongoose.Schema({
+    fullName: {
+        type: String,
+        default: ""
+    },
+    phone: {
+        type: String,
+        default: ""
+    },
     street: {
         type: String,
         required: true
@@ -22,6 +30,15 @@ const addressSchema = new mongoose.Schema({
     country: {
         type: String,
         required: true
+    },
+    addressType: {
+        type: String,
+        enum: ["home", "work", "other"],
+        default: "home"
+    },
+    isDefault: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -35,6 +52,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
       required: true,
       unique: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
     },
     password: {
       type: String,

@@ -60,7 +60,7 @@ export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
               <h2 className="font-bold text-base text-foreground tracking-tight leading-tight">
                 Super Admin
               </h2>
-              <p className="text-xs text-muted-foreground">Nexa Commerce</p>
+              <p className="text-xs text-muted-foreground">Sheger Gebeya</p>
             </div>
           </div>
           <button

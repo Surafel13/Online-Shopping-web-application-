@@ -143,7 +143,7 @@ export function MobileNav({
                   N
                 </span>
               </div>
-              <span className="font-bold">Nexa Commerce</span>
+              <span className="font-bold">Sheger Gebeya</span>
             </Link>
             <Button
               variant="ghost"

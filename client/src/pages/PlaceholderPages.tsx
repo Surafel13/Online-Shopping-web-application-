@@ -12,7 +12,7 @@ export const CategoriesPage = () => (
 export const AboutPage = () => (
   <PlaceholderPage
     title="About Us"
-    description="Learn more about Nexa Commerce, our story and what we stand for."
+    description="Learn more about Sheger Gebeya, our story and what we stand for."
     icon={Info}
   />
 );

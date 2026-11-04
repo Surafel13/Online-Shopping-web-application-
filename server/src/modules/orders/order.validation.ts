@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const createOrderSchema = z.object({
+  addressId: z.string().min(1, "Shipping address is required."),
+  paymentMethod: z.string().trim().min(1, "Payment method is required."),
+});
+
 export const updateOrderStatusSchema = z.object({
   orderStatus: z.enum(
     ["pending", "processing", "shipped", "delivered", "cancelled"],

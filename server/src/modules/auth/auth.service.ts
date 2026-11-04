@@ -9,7 +9,7 @@ import { getEffectivePermissionCodes } from "../rbac/rbac.service.js";
 export class UserService {
   private userRepo = new UsersRepo();
 
-  async Signup(userData: any) {
+  async Signup(userData: unknown) {
     const validatedata = userSignupSchema.parse(userData);
     const existedUser = await this.userRepo.findByEmail(validatedata.email);
 
@@ -43,7 +43,7 @@ export class UserService {
     };
   }
 
-  async login(userData: any) {
+  async login(userData: unknown) {
     const validatedata = userLoginSchema.parse(userData);
 
     const result = await this.userRepo.findByEmail(validatedata.email);

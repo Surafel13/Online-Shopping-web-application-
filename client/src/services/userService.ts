@@ -1,10 +1,10 @@
-import apiClient from './api';
+import apiClient, { requireApiList, requireApiValue } from './api';
 import type { ApiResponse, ApiUser } from '../types/api';
 
 export const userService = {
   async getAllUsers() {
     const { data } = await apiClient.get<ApiResponse<ApiUser[]> & { users: ApiUser[] }>('/account/users');
-    return data.users || [];
+    return requireApiList(data.users, 'users');
   },
 
   async updateUser(
@@ -15,6 +15,6 @@ export const userService = {
       `/account/users/${userId}`,
       payload,
     );
-    return data.user!;
+    return requireApiValue(data.user, 'user');
   },
 };

@@ -9,6 +9,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Separator } from '../components/ui/separator';
 import { ArrowLeft, ShieldCheck, Lock, Globe } from 'lucide-react';
+import type { ILogin } from '../types/user.types';
 
 export function Login() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,10 +26,11 @@ export function Login() {
     }
   }, [isAuthenticated, user, navigate, location.state]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dispatch(clearAuthError());
-    const result = await dispatch(loginUser({ email, password }));
+    const credentials: ILogin = { email: email.trim(), password };
+    const result = await dispatch(loginUser(credentials));
     if (loginUser.fulfilled.match(result)) {
       const from = (location.state as { from?: string } | null)?.from;
       navigate(getPostAuthRedirect(result.payload.user, from));
@@ -41,13 +43,13 @@ export function Login() {
         <Link to="/" className="absolute top-24 left-8 flex items-center text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to store
         </Link>
-        
+
         <div className="w-full max-w-md mx-auto flex flex-col items-center">
           <div className="flex items-center space-x-2 mb-6">
             <div className="h-8 w-8 bg-blue-600 rounded-sm flex items-center justify-center shadow-md">
               <span className="text-white font-bold text-lg leading-none">N</span>
             </div>
-            <span className="font-bold text-2xl text-blue-600">Nexa Commerce</span>
+            <span className="font-bold text-2xl text-blue-600">Sheger Gebeya</span>
           </div>
 
           <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
@@ -80,7 +82,7 @@ export function Login() {
             <div className="space-y-4 mb-6">
               <div>
                 <label className="text-sm font-medium mb-1.5 block text-left">Email Address</label>
-                <Input type="email" placeholder="name@company.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input name="email" autoComplete="email" type="email" placeholder="name@company.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
@@ -88,7 +90,7 @@ export function Login() {
                   <a href="#" className="text-xs text-blue-600 hover:underline">Forgot password?</a>
                 </div>
                 <div className="relative">
-                  <Input type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input name="password" autoComplete="current-password" type="password" placeholder="••••••••" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
                   <button type="button" className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
@@ -104,19 +106,19 @@ export function Login() {
             <Button type="submit" disabled={isLoading} className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-base shadow-md">
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-            
+
             <div className="mt-6 text-center text-sm border-t pt-6">
               <span className="text-muted-foreground">Don't have an account? </span>
               <Link to="/register" className="font-semibold text-blue-600 hover:underline">Create account</Link>
             </div>
           </form>
-          
+
           <div className="mt-8 flex gap-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">
             <span className="flex items-center"><ShieldCheck className="mr-1.5 h-3.5 w-3.5" /> Trusted</span>
             <span className="flex items-center"><Lock className="mr-1.5 h-3.5 w-3.5" /> Secure</span>
             <span className="flex items-center"><Globe className="mr-1.5 h-3.5 w-3.5" /> Global</span>
           </div>
-          
+
           <p className="mt-8 text-xs text-muted-foreground text-center max-w-xs">
             By signing in, you agree to our <a href="#" className="underline">Terms of Service</a> and <a href="#" className="underline">Privacy Policy</a>.
           </p>
