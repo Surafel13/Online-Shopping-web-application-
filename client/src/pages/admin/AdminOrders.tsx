@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
-import { Search, Filter, MoreHorizontal, Eye, Clock, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Eye, Clock, CheckCircle2, AlertCircle, ShoppingBag, CreditCard, Receipt } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
@@ -54,12 +54,29 @@ function mapOrder(order: ApiOrder): AdminOrderRow {
 
 const StatusBadge = ({ status }: { status: string }) => {
   switch (status) {
-    case 'Completed': return <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"><CheckCircle2 className="h-3 w-3" /> Completed</span>;
-    case 'Processing': return <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium"><Clock className="h-3 w-3" /> Processing</span>;
-    case 'Pending': return <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium"><Clock className="h-3 w-3" /> Pending</span>;
-    case 'Cancelled': return <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium"><AlertCircle className="h-3 w-3" /> Cancelled</span>;
+    case 'Completed': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium"><CheckCircle2 className="h-3 w-3" /> Completed</span>;
+    case 'Processing': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium"><Clock className="h-3 w-3" /> Processing</span>;
+    case 'Pending': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium"><Clock className="h-3 w-3" /> Pending</span>;
+    case 'Cancelled': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-xs font-medium"><AlertCircle className="h-3 w-3" /> Cancelled</span>;
     default: return null;
   }
+};
+
+const PaymentBadge = ({ status }: { status: string }) => {
+  const isPaid = status.toLowerCase() === 'paid';
+  const isFailed = status.toLowerCase() === 'failed';
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${
+      isPaid
+        ? 'bg-emerald-50 text-emerald-600'
+        : isFailed
+          ? 'bg-red-50 text-red-600'
+          : 'bg-muted text-muted-foreground'
+    }`}>
+      <CreditCard className="h-3 w-3" />
+      {status}
+    </span>
+  );
 };
 
 const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };
@@ -164,18 +181,22 @@ export function AdminOrders() {
           <Button className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20">Export CSV</Button>
         </div>
 
-        <div className="bg-card rounded-xl border shadow-sm flex flex-col overflow-hidden">
-          <div className="p-4 border-b flex flex-wrap gap-4 items-center justify-between bg-muted/10">
+        <div className="bg-card rounded-2xl border shadow-sm flex flex-col overflow-hidden">
+          <div className="p-4 border-b flex flex-wrap gap-4 items-center justify-between bg-muted/20">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                className="pl-9 h-9"
+                className="pl-9 h-9 bg-background"
                 placeholder="Search by order ID or customer name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-2">
+                <Receipt className="h-4 w-4" />
+                <span>{filteredOrders.length} of {orders.length} orders</span>
+              </div>
               <Button variant="outline" size="sm" className="h-9 gap-2"><Filter className="h-4 w-4" /> Filter</Button>
             </div>
           </div>
@@ -199,15 +220,17 @@ export function AdminOrders() {
                 <motion.tbody variants={containerVariants} initial="hidden" animate="show" className="divide-y bg-card">
                   {filteredOrders.map((order) => (
                     <motion.tr key={order.id} variants={itemVariants} className="hover:bg-muted/40 transition-colors group">
-                      <td className="px-6 py-4 font-mono font-medium">{order.id}</td>
-                      <td className="px-6 py-4 text-muted-foreground">{order.date}</td>
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-xs font-medium px-2 py-1 rounded-md bg-muted/60 text-foreground">{order.id}</span>
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{order.date}</td>
                       <td className="px-6 py-4">
                         <div className="font-medium">{order.customer}</div>
                         <div className="text-xs text-muted-foreground">{order.email}</div>
                       </td>
                       <td className="px-6 py-4"><StatusBadge status={order.status} /></td>
-                      <td className="px-6 py-4 text-muted-foreground">{order.paymentStatus}</td>
-                      <td className="px-6 py-4 font-semibold">${order.amount.toFixed(2)}</td>
+                      <td className="px-6 py-4"><PaymentBadge status={order.paymentStatus} /></td>
+                      <td className="px-6 py-4 font-semibold tabular-nums">${order.amount.toFixed(2)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button variant="ghost" size="icon" className="h-8 w-8 border bg-background" onClick={() => openOrderDetail(order.orderId)}>
@@ -245,7 +268,9 @@ export function AdminOrders() {
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5 text-blue-600" />
+              <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <ShoppingBag className="h-4 w-4 text-blue-600" />
+              </div>
               Order Details
             </DialogTitle>
           </DialogHeader>
@@ -254,35 +279,47 @@ export function AdminOrders() {
           ) : selectedOrderDetail && (
             <div className="space-y-4 pt-2">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Order ID</span><span className="font-mono font-medium">ORD-{selectedOrderDetail._id.slice(-4).toUpperCase()}</span></div>
-                <div><span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Date</span><span>{formatOrderDate(selectedOrderDetail.createdAt)}</span></div>
-                <div><span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Payment</span><span>{mapPaymentStatusToUi(selectedOrderDetail.paymentStatus)}</span></div>
-                <div><span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Method</span><span>{selectedOrderDetail.paymentMethod}</span></div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Order ID</span>
+                  <span className="font-mono font-medium px-2 py-0.5 rounded-md bg-muted/60 text-xs">ORD-{selectedOrderDetail._id.slice(-4).toUpperCase()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Date</span>
+                  <span className="font-medium">{formatOrderDate(selectedOrderDetail.createdAt)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Payment</span>
+                  <PaymentBadge status={mapPaymentStatusToUi(selectedOrderDetail.paymentStatus)} />
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Method</span>
+                  <span className="font-medium">{selectedOrderDetail.paymentMethod}</span>
+                </div>
               </div>
 
-              <div className="border rounded-lg p-4 space-y-3">
-                <h4 className="font-semibold text-sm">Items</h4>
+              <div className="border rounded-xl p-4 space-y-3 bg-muted/10">
+                <h4 className="font-semibold text-sm mb-1">Items</h4>
                 {selectedOrderDetail.items.map((item, index) => {
                   const product = getProductFromRef(item.productId);
                   return (
                     <div key={index} className="flex justify-between text-sm">
-                      <span>{product?.name || 'Product'} x{item.quantity}</span>
-                      <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="text-foreground">{product?.name || 'Product'} <span className="text-muted-foreground">x{item.quantity}</span></span>
+                      <span className="font-medium tabular-nums">${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="border rounded-lg p-4 text-sm">
+              <div className="border rounded-xl p-4 text-sm">
                 <h4 className="font-semibold mb-2">Shipping Address</h4>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground leading-relaxed">
                   {selectedOrderDetail.shippingAddress.street}, {selectedOrderDetail.shippingAddress.city}, {selectedOrderDetail.shippingAddress.state} {selectedOrderDetail.shippingAddress.postalCode}
                 </p>
               </div>
 
-              <div className="border-t pt-4 flex justify-between items-center font-semibold">
-                <span>Total Amount</span>
-                <span className="text-lg text-blue-600">${selectedOrderDetail.totalAmount.toFixed(2)}</span>
+              <div className="border-t pt-4 flex justify-between items-center">
+                <span className="font-semibold text-sm text-muted-foreground">Total Amount</span>
+                <span className="text-xl font-bold text-blue-600 tabular-nums">${selectedOrderDetail.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           )}

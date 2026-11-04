@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../../components/layout/PageTransition';
 import { motion } from 'framer-motion';
-import { Search, Plus, MoreHorizontal, Pencil, Trash2, Package } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Pencil, Trash2, Package, Boxes } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
@@ -26,6 +26,16 @@ const emptyForm = {
   purchasePrice: '',
   category: '',
   stock: '',
+};
+
+const StockBadge = ({ stock }: { stock: number }) => {
+  if (stock === 0) {
+    return <span className="px-2 py-0.5 rounded-md bg-red-50 text-red-600 text-xs font-medium">Out of stock</span>;
+  }
+  if (stock < 10) {
+    return <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-xs font-medium">{stock} left</span>;
+  }
+  return <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-xs font-medium">{stock} in stock</span>;
 };
 
 export function AdminProducts() {
@@ -166,16 +176,20 @@ export function AdminProducts() {
           </Button>
         </div>
 
-        <div className="bg-card rounded-xl border shadow-sm flex flex-col overflow-hidden">
-          <div className="p-4 border-b flex flex-wrap gap-4 items-center justify-between bg-muted/10">
+        <div className="bg-card rounded-2xl border shadow-sm flex flex-col overflow-hidden">
+          <div className="p-4 border-b flex flex-wrap gap-4 items-center justify-between bg-muted/20">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                className="pl-9 h-9"
-                placeholder="Search products..."
+                className="pl-9 h-9 bg-background"
+                placeholder="Search products or categories..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Boxes className="h-4 w-4" />
+              <span>{filteredProducts.length} of {products.length} products</span>
             </div>
           </div>
 
@@ -198,26 +212,30 @@ export function AdminProducts() {
                     <motion.tr key={product._id} variants={itemVariants} className="hover:bg-muted/40 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-md overflow-hidden bg-muted border">
+                          <div className="h-11 w-11 rounded-lg overflow-hidden bg-muted border shrink-0">
                             {product.images?.[0] ? (
                               <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center"><Package className="h-4 w-4 text-muted-foreground" /></div>
                             )}
                           </div>
-                          <div>
-                            <div className="font-medium">{product.name}</div>
+                          <div className="min-w-0">
+                            <div className="font-medium truncate max-w-[220px]">{product.name}</div>
                             <Link to={`/product/${product._id}`} className="text-xs text-blue-600 hover:underline">View storefront</Link>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">{categoryMap.get(String(product.category)) || 'General'}</td>
-                      <td className="px-6 py-4 font-semibold">${product.price.toFixed(2)}</td>
-                      <td className="px-6 py-4">{product.stock}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-xs font-medium text-muted-foreground">
+                          {categoryMap.get(String(product.category)) || 'General'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-semibold tabular-nums">${product.price.toFixed(2)}</td>
+                      <td className="px-6 py-4"><StockBadge stock={product.stock} /></td>
                       <td className="px-6 py-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 border bg-background">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 border bg-background opacity-0 group-hover:opacity-100 transition-opacity">
                               <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                             </Button>
                           </DropdownMenuTrigger>

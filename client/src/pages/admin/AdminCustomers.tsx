@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageTransition } from "../../components/layout/PageTransition";
 import { motion } from "framer-motion";
-import { Search, Filter, MoreHorizontal, Mail } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Mail, Users, UserCheck, DollarSign } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import {
@@ -83,6 +83,26 @@ const StatusBadge = ({ status }: { status: string }) => {
       return null;
   }
 };
+
+const StatChip = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) => (
+  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/40 border border-transparent hover:border-border transition-colors">
+    <div className="flex items-center justify-center h-9 w-9 rounded-md bg-background border shadow-sm">
+      <Icon className="h-4 w-4 text-muted-foreground" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+      <span className="text-lg font-bold leading-tight">{value}</span>
+    </div>
+  </div>
+);
 
 export function AdminCustomers() {
   const dispatch = useDispatch<AppDispatch>();
@@ -220,33 +240,22 @@ export function AdminCustomers() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-card border rounded-xl p-5 shadow-sm">
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Total Customers
-            </h3>
-            <p className="text-3xl font-bold mt-2">
-              {filteredCustomers.length.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="bg-card border rounded-xl p-5 shadow-sm">
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Active Accounts
-            </h3>
-            <p className="text-3xl font-bold mt-2">
-              {activeCustomers.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="bg-card border rounded-xl p-5 shadow-sm">
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Avg. Lifetime Value
-            </h3>
-            <p className="text-3xl font-bold mt-2">
-              ${avgLifetimeValue.toFixed(0)}
-            </p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatChip
+            icon={Users}
+            label="Total Customers"
+            value={filteredCustomers.length.toLocaleString()}
+          />
+          <StatChip
+            icon={UserCheck}
+            label="Active Accounts"
+            value={activeCustomers.toLocaleString()}
+          />
+          <StatChip
+            icon={DollarSign}
+            label="Avg. Lifetime Value"
+            value={`$${avgLifetimeValue.toFixed(0)}`}
+          />
         </div>
 
         <div className="bg-card rounded-xl border shadow-sm flex flex-col overflow-hidden">
