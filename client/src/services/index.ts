@@ -4,6 +4,7 @@ export { categoryService } from './categoryService';
 export { cartService } from './cartService';
 export { wishlistService } from './wishlistService';
 export { orderService } from './orderService';
+export { reviewService } from './reviewService';
 export { profileService } from './profileService';
 export { userService } from './userService';
 export { adminService } from './adminService';

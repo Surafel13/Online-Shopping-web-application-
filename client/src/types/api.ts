@@ -110,8 +110,35 @@ export interface ApiProduct {
   category: string | ApiCategory;
   stock: number;
   images: string[];
+  rating?: number;
+  reviewCount?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ApiReviewAuthor {
+  _id: string;
+  username: string;
+  profileImg?: string;
+}
+
+export interface ApiReview {
+  _id: string;
+  user: string | ApiReviewAuthor;
+  product: string | ApiProduct;
+  rating: number;
+  title: string;
+  comment: string;
+  isVerifiedPurchase: boolean;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiReviewSummary {
+  reviews: ApiReview[];
+  rating: number;
+  reviewCount: number;
 }
 
 export interface ApiCartItem {

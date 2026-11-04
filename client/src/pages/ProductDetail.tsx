@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { PageTransition } from "../components/layout/PageTransition";
@@ -16,11 +16,11 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ProductCard } from "../components/shared/ProductCard";
+import { ProductReviews } from "../components/shared/ProductReviews";
 import type { ProductType } from "../components/shared/ProductCard";
 import { productService, categoryService } from "../services";
 import {
   buildCategoryMap,
-  getProductMeta,
   mapApiProductToProductType,
 } from "../lib/mappers";
 import type { ApiProduct } from "../types/api";
@@ -44,6 +44,15 @@ export function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("Description");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const updateReviewSummary = useCallback(
+    ({ rating, reviewCount }: { rating: number; reviewCount: number }) => {
+      setApiProduct((current) =>
+        current ? { ...current, rating, reviewCount } : current,
+      );
+    },
+    [],
+  );
 
   useEffect(() => {
     async function loadProduct() {
@@ -96,7 +105,8 @@ export function ProductDetail() {
     );
   }
 
-  const { rating, reviews } = getProductMeta(apiProduct._id);
+  const rating = apiProduct.rating ?? 0;
+  const reviews = apiProduct.reviewCount ?? 0;
   const product = {
     id: apiProduct._id,
     name: apiProduct.name,
@@ -368,7 +378,14 @@ export function ProductDetail() {
               (tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    if (tab.startsWith("Reviews")) {
+                      document
+                        .getElementById("product-reviews")
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
                   className={cn(
                     "px-8 py-4 font-semibold text-sm transition-all relative whitespace-nowrap",
                     activeTab === tab
@@ -434,6 +451,12 @@ export function ProductDetail() {
             ))}
           </div>
         </div>
+
+        <ProductReviews
+          key={product.id}
+          productId={product.id}
+          onSummaryChange={updateReviewSummary}
+        />
       </div>
     </PageTransition>
   );

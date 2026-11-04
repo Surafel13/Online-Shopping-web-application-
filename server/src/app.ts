@@ -68,7 +68,7 @@ app.use("/api/account", authMiddleware, userRoute);
 app.use("/api/cart", authMiddleware, cartRoute);
 app.use("/api/orders", authMiddleware, orderRoute);
 app.use("/api/wishlist", authMiddleware, wishlistRoute);
-app.use("/api/reviews", authMiddleware, reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.use(
   "/api/super-admin",
