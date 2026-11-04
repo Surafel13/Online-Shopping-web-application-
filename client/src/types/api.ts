@@ -14,10 +14,11 @@ export interface ApiUser {
   _id: string;
   username: string;
   email: string;
-  role: 'customer' | 'admin' | 'super_admin';
+  role: "customer" | "admin" | "super_admin";
   isActive: boolean;
   addresses?: ApiAddress[];
   profileImg?: string;
+  permissionCodes?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -50,6 +51,45 @@ export interface ApiAddress {
   state: string;
   postalCode: string;
   country: string;
+}
+
+
+
+export type AdminStatus = 'active' | 'suspended' | 'inactive';
+
+export interface ApiPermission {
+  _id: string;
+  name: string;
+  code: string;
+  module: string;
+  action: string;
+  description: string;
+  isSystem: boolean;
+  roleCount?: number;
+  adminCount?: number;
+}
+
+export interface ApiRole {
+  _id: string;
+  name: string;
+  description: string;
+  isSystem: boolean;
+  permissions: ApiPermission[];
+  adminCount?: number;
+}
+
+export interface ApiAdmin {
+  _id: string;
+  username: string;
+  email: string;
+  role: 'admin';
+  status: AdminStatus;
+  isActive: boolean;
+  adminRole: ApiRole | null;
+  directPermissions: ApiPermission[];
+  effectivePermissions: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type UserProfile = ApiUser;

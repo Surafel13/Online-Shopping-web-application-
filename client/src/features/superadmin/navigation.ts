@@ -13,6 +13,7 @@ import {
   Settings,
   UserCog,
   type LucideIcon,
+  KeyRound,
 } from "lucide-react";
 
 export interface SuperAdminNavItem {
@@ -46,6 +47,13 @@ export const SUPER_ADMIN_NAV: SuperAdminNavItem[] = [
     icon: ShieldCheck,
     group: "People",
     description: "Create, promote and revoke administrator access.",
+  },
+  {
+    name: "Permissions",
+    slug: "permissions",
+    icon: KeyRound,
+    group: "People",
+    description: "Create permissions and roles and control admin access.",
   },
   {
     name: "Product Management",

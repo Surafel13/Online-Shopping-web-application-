@@ -11,7 +11,8 @@
     "seed:users": "tsx --env-file=.env src/seeds/Users.ts",
     "seed:categories": "tsx src/seeds/Categories.ts",
     "seed:products": "tsx src/seeds/Product.ts",
-    "seed:superadmin": "tsx --env-file=.env src/seeds/SuperAdmin.ts"
+    "seed:superadmin": "tsx --env-file=.env src/seeds/SuperAdmin.ts",
+    "seed:permissions": "tsx --env-file=.env src/seeds/Permissions.ts"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",

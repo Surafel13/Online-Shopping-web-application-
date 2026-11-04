@@ -10,13 +10,16 @@ export interface IAddress {
 }
 
 
-export interface IUser{
-    _id: Types.ObjectId,
-    username: string,
-    email: string,
-    password: string,
-    role: "customer" | "admin" | "super_admin",
-    isActive : boolean,
-    addresses: IAddress[],
-    profileImg? : string
+export interface IUser {
+  _id: Types.ObjectId;
+  username: string;
+  email: string;
+  password: string;
+  role: "customer" | "admin" | "super_admin";
+  isActive: boolean;
+  addresses: IAddress[];
+  profileImg?: string;
+  status?: "active" | "suspended" | "inactive";
+  adminRole?: Types.ObjectId | null;
+  directPermissions?: Types.ObjectId[];
 }

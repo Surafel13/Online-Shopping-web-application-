@@ -9,7 +9,8 @@ export interface AuthUser {
   name: string;
   email: string;
   avatar?: string;
-  role: 'customer' | 'admin' | 'super_admin';
+  role: "customer" | "admin" | "super_admin";
+  permissions: string[];
 }
 
 interface AuthState {

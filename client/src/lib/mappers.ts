@@ -173,6 +173,7 @@ export function mapUserToAuth(user: ApiUser) {
     email: user.email,
     avatar: user.profileImg,
     role: user.role,
+    permissions: user.permissionCodes ?? [],
   };
 }
 

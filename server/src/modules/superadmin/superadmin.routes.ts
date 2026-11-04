@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { getOverview } from "./superadmin.controller.js";
+import adminRouter from "../admins/admin.routes.js";
+import {
+  permissionRouter,
+  roleRouter,
+} from "../permissions/permission.routes.js";
 
 const superAdminRouter = Router();
 
@@ -18,5 +23,9 @@ const superAdminRouter = Router();
  *         description: Forbidden
  */
 superAdminRouter.get("/overview", getOverview);
+
+superAdminRouter.use("/admins", adminRouter);
+superAdminRouter.use("/permissions", permissionRouter);
+superAdminRouter.use("/roles", roleRouter);
 
 export default superAdminRouter;

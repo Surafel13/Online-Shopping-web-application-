@@ -5,11 +5,15 @@ import type { RootState, AppDispatch } from "./redux/store";
 import { restoreSession } from "./redux/slices/authSlice";
 import { fetchCart } from "./redux/slices/cartSlice";
 import { fetchWishlist } from "./redux/slices/wishlistSlice";
+
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AdminRoute } from "./components/auth/AdminRoute";
+import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
+
 import { FeedbackToast } from "./components/shared/FeedbackToast";
+
 import { Home } from "./pages/Home";
 import { Collections } from "./pages/Collections";
 import { ProductDetail } from "./pages/ProductDetail";
@@ -21,6 +25,7 @@ import { Register } from "./pages/Register";
 import { Profile } from "./pages/Profile";
 import { Orders } from "./pages/Orders";
 import { Wishlist } from "./pages/Wishlist";
+
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { AdminOverview } from "./pages/admin/AdminOverview";
 import { AdminProducts } from "./pages/admin/AdminProducts";
@@ -48,21 +53,13 @@ import {
   AdminChangePassword,
 } from "./pages/admin/AdminPlaceholderSections";
 
-import { SuperAdminRoute } from "./components/auth/SuperAdminRoute";
 import { SuperAdminLayout } from "./components/layout/SuperAdminLayout";
 import { SuperAdminOverview } from "./pages/superadmin/SuperAdminOverview";
-
-import {
-  AboutPage,
-  ContactPage,
-  NotificationsPage,
-  AddressesPage,
-  AccountSettingsPage,
-} from "./pages/PlaceholderPages";
+import { AdminManagement } from "./pages/superadmin/AdminManagement";
+import { PermissionsManagement } from "./pages/superadmin/PermissionsManagement";
 
 import {
   SuperAdminUsers,
-  SuperAdminAdmins,
   SuperAdminProducts,
   SuperAdminCategories,
   SuperAdminOrders,
@@ -75,15 +72,26 @@ import {
   SuperAdminProfile,
 } from "./pages/superadmin/SuperAdminSections";
 
+import {
+  AboutPage,
+  ContactPage,
+  NotificationsPage,
+  AddressesPage,
+  AccountSettingsPage,
+} from "./pages/PlaceholderPages";
+
 function App() {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
+
   const isAdminRoute =
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/super-admin");
+
   const theme = useSelector((state: RootState) => state.theme.theme);
+
   const { isAuthenticated, isInitialized } = useSelector(
-    (state: RootState) => state.auth,
+    (state: RootState) => state.auth
   );
 
   useEffect(() => {
@@ -99,6 +107,7 @@ function App() {
 
   useEffect(() => {
     const root = window.document.documentElement;
+
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
@@ -117,14 +126,22 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-foreground">
       {!isAdminRoute && <Header />}
+
       <main className="flex-1">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/categories" element={<Categories />} />
-
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+
+          {/* Authentication Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes */}
           <Route
             path="/notifications"
             element={
@@ -133,6 +150,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/account/addresses"
             element={
@@ -141,6 +159,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/account/settings"
             element={
@@ -149,7 +168,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/product/:id" element={<ProductDetail />} />
+
           <Route
             path="/cart"
             element={
@@ -158,6 +177,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/checkout"
             element={
@@ -166,6 +186,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/wishlist"
             element={
@@ -174,6 +195,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/profile"
             element={
@@ -182,8 +204,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+
           <Route
             path="/orders"
             element={
@@ -192,6 +213,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -233,13 +256,17 @@ function App() {
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="analytics/sales" element={<AdminSalesReports />} />
             <Route path="analytics/revenue" element={<AdminRevenueReports />} />
-            <Route path="analytics/products" element={<AdminProductPerformance />} />
+            <Route
+              path="analytics/products"
+              element={<AdminProductPerformance />}
+            />
 
             {/* Account Settings */}
             <Route path="settings" element={<AdminSettings />} />
             <Route path="change-password" element={<AdminChangePassword />} />
           </Route>
 
+          {/* Super Admin Routes */}
           <Route
             path="/super-admin"
             element={
@@ -250,8 +277,13 @@ function App() {
           >
             <Route index element={<SuperAdminOverview />} />
             <Route path="overview" element={<SuperAdminOverview />} />
+
+            {/* User Management */}
             <Route path="users" element={<SuperAdminUsers />} />
-            <Route path="admins" element={<SuperAdminAdmins />} />
+            <Route path="admins" element={<AdminManagement />} />
+            <Route path="permissions" element={<PermissionsManagement />} />
+
+            {/* Platform Management */}
             <Route path="products" element={<SuperAdminProducts />} />
             <Route path="categories" element={<SuperAdminCategories />} />
             <Route path="orders" element={<SuperAdminOrders />} />
@@ -259,13 +291,20 @@ function App() {
             <Route path="reviews" element={<SuperAdminReviews />} />
             <Route path="reports" element={<SuperAdminReports />} />
             <Route path="inventory" element={<SuperAdminInventory />} />
-            <Route path="activity-logs" element={<SuperAdminActivityLogs />} />
+
+            {/* System Management */}
+            <Route
+              path="activity-logs"
+              element={<SuperAdminActivityLogs />}
+            />
             <Route path="settings" element={<SuperAdminSettings />} />
             <Route path="profile" element={<SuperAdminProfile />} />
           </Route>
         </Routes>
       </main>
+
       {!isAdminRoute && <Footer />}
+
       <FeedbackToast />
     </div>
   );

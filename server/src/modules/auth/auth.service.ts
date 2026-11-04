@@ -4,74 +4,85 @@ import { UsersRepo } from "./auth.repo.js";
 import { userSignupSchema, userLoginSchema } from "./auth.validation.js";
 import { generateToken } from "../../utils/jwt.utils.js";
 import bcrypt from "bcrypt";
+import { getEffectivePermissionCodes } from "../rbac/rbac.service.js";
 
 export class UserService {
-    private userRepo = new UsersRepo();
+  private userRepo = new UsersRepo();
 
-    async Signup(userData: any) {
-        
-        const validatedata = userSignupSchema.parse(userData);
-        const existedUser = await this.userRepo.findByEmail(validatedata.email);
+  async Signup(userData: any) {
+    const validatedata = userSignupSchema.parse(userData);
+    const existedUser = await this.userRepo.findByEmail(validatedata.email);
 
-        if (existedUser) {
-            throw new AppError("User already exist", 400);
-        }
-
-        const hashedPassword = await bcrypt.hash(validatedata.password, 10);
-        
-        const storeData = {
-            ...validatedata,
-            password: hashedPassword
-        };
-
-        const user = await this.userRepo.RegisterUser(storeData);
-        
-        const token = generateToken(user._id, user.role);
-
-        const userResponse = {
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            isActive: user.isActive,
-            addresses: user.addresses
-        };
-
-        return {
-            user: userResponse,
-            token: token
-        };
+    if (existedUser) {
+      throw new AppError("User already exist", 400);
     }
 
-    async login(userData: any) {
-        const validatedata = userLoginSchema.parse(userData);
+    const hashedPassword = await bcrypt.hash(validatedata.password, 10);
 
-        const result = await this.userRepo.findByEmail(validatedata.email);
-        
-        if (!result) {
-            throw new AppError("Invalid credentials", 401);
-        }
+    const storeData = {
+      ...validatedata,
+      password: hashedPassword,
+    };
 
-        const isMatch = await bcrypt.compare(validatedata.password, result.password);
-        
-        if (!isMatch) {
-            throw new AppError("Invalid credentials", 401);
-        }
+    const user = await this.userRepo.RegisterUser(storeData);
 
-        const token = generateToken(result._id, result.role);
+    const token = generateToken(user._id, user.role);
 
-        const userResponse = {
-            _id: result._id,
-            username: result.username,
-            email: result.email,
-            role: result.role,
-            isActive: result.isActive,
-            addresses: result.addresses
-        };
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      addresses: user.addresses,
+    };
 
-        return {
-            user: userResponse,
-            token: token
-        };
+    return {
+      user: userResponse,
+      token: token,
+    };
+  }
+
+  async login(userData: any) {
+    const validatedata = userLoginSchema.parse(userData);
+
+    const result = await this.userRepo.findByEmail(validatedata.email);
+
+    if (!result) {
+      throw new AppError("Invalid credentials", 401);
     }
+
+    const isMatch = await bcrypt.compare(
+      validatedata.password,
+      result.password,
+    );
+
+    if (!isMatch) {
+      throw new AppError("Invalid credentials", 401);
+    }
+
+    if (!result.isActive) {
+      throw new AppError("Your account is deactivated or suspended.", 403);
+    }
+
+    const token = generateToken(result._id, result.role);
+
+    const userResponse = {
+      _id: result._id,
+      username: result.username,
+      email: result.email,
+      role: result.role,
+      isActive: result.isActive,
+      addresses: result.addresses,
+      permissionCodes:
+        result.role === "admin"
+          ? await getEffectivePermissionCodes(result._id)
+          : [],
+    };
+
+    return {
+      user: userResponse,
+      token: token,
+    };
+  }
 }

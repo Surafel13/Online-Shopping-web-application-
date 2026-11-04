@@ -23,6 +23,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { hasPermission } from "../../lib/permissions";
+import type { AuthUser } from "../../redux/slices/authSlice";
+
 export interface AdminNavItem {
   name: string;
   slug: string;
@@ -197,5 +200,35 @@ export const ADMIN_NAV: AdminNavItem[] = [
     description: "Update your account password.",
   },
 ];
+
+export const ADMIN_PERMISSION_BY_SLUG: Record<string, string> = {
+  products: "products:view",
+  "add-product": "products:create",
+  categories: "products:view",
+  inventory: "inventory:view",
+  orders: "orders:view",
+  payments: "payments:view",
+  refunds: "payments:view",
+  customers: "customers:view",
+  sellers: "customers:view",
+  promotions: "products:update",
+  coupons: "products:update",
+  reviews: "products:view",
+  support: "orders:view",
+  disputes: "orders:view",
+  notifications: "orders:view",
+  analytics: "reports:view",
+  "analytics/sales": "reports:view",
+  "analytics/revenue": "reports:view",
+  "analytics/products": "reports:view",
+};
+
+export const getAdminSlugFromPath = (pathname: string) =>
+  pathname.replace(/^\/admin\/?/, "").replace(/\/$/, "") || "overview";
+
+export const canAccessAdminSlug = (
+  user: Pick<AuthUser, "role" | "permissions"> | null | undefined,
+  slug: string,
+) => hasPermission(user, ADMIN_PERMISSION_BY_SLUG[slug]);
 
 export const adminPath = (slug: string) => `${ADMIN_BASE}/${slug}`;

@@ -1,32 +1,57 @@
-import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, ChevronRight, ShieldCheck, X } from 'lucide-react';
 import gsap from 'gsap';
-import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../../redux/store';
+
 import { logout } from '../../redux/slices/authSlice';
 import { clearCartState } from '../../redux/slices/cartSlice';
 import { clearWishlistState } from '../../redux/slices/wishlistSlice';
-import { ADMIN_NAV, ADMIN_BASE, adminPath } from './navigation';
+
+import { useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../redux/store';
+
+import {
+  ADMIN_NAV,
+  ADMIN_BASE,
+  adminPath,
+  canAccessAdminSlug,
+} from './navigation';
 
 interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const GROUPS = ADMIN_NAV.reduce<
-  Array<{ name: string; items: typeof ADMIN_NAV }>
->((acc, item) => {
-  const existing = acc.find((group) => group.name === item.group);
-  if (existing) existing.items.push(item);
-  else acc.push({ name: item.group, items: [item] });
-  return acc;
-}, []);
+const buildGroups = (items: typeof ADMIN_NAV) =>
+  items.reduce<Array<{ name: string; items: typeof ADMIN_NAV }>>(
+    (acc, item) => {
+      const existing = acc.find((group) => group.name === item.group);
+
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        acc.push({ name: item.group, items: [item] });
+      }
+
+      return acc;
+    },
+    []
+  );
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const groups = useMemo(
+    () =>
+      buildGroups(
+        ADMIN_NAV.filter((item) => canAccessAdminSlug(user, item.slug))
+      ),
+    [user]
+  );
 
   const handleLogout = () => {
     dispatch(logout());
@@ -39,7 +64,14 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     gsap.fromTo(
       '.admin-sidebar-item',
       { opacity: 0, x: -20 },
-      { opacity: 1, x: 0, stagger: 0.03, duration: 0.4, ease: 'power2.out', delay: 0.15 }
+      {
+        opacity: 1,
+        x: 0,
+        stagger: 0.03,
+        duration: 0.4,
+        ease: 'power2.out',
+        delay: 0.15,
+      }
     );
   }, []);
 
@@ -62,13 +94,17 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-600/20">
               <ShieldCheck className="h-4 w-4 text-white" />
             </div>
+
             <div>
               <h2 className="font-bold text-base text-foreground tracking-tight leading-tight">
                 Admin Portal
               </h2>
-              <p className="text-xs text-muted-foreground">Manage your store operations</p>
+              <p className="text-xs text-muted-foreground">
+                Manage your store operations
+              </p>
             </div>
           </div>
+
           <button
             onClick={onClose}
             className="lg:hidden text-muted-foreground hover:text-foreground"
@@ -79,17 +115,20 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-5 px-4 space-y-6">
-          {GROUPS.map((group) => (
+          {groups.map((group) => (
             <div key={group.name}>
               <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2 px-2">
                 {group.name}
               </div>
+
               <div className="flex flex-col gap-1">
                 {group.items.map((item) => {
                   const to = adminPath(item.slug);
+
                   const isActive =
                     location.pathname === to ||
-                    (item.slug === 'overview' && location.pathname === ADMIN_BASE);
+                    (item.slug === 'overview' &&
+                      location.pathname === ADMIN_BASE);
 
                   return (
                     <Link
@@ -104,10 +143,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     >
                       <span className="flex items-center gap-3">
                         <item.icon
-                          className={`h-4 w-4 ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`}
+                          className={`h-4 w-4 ${
+                            isActive
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : ''
+                          }`}
                         />
                         {item.name}
                       </span>
+
                       {isActive && (
                         <ChevronRight className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       )}

@@ -12,7 +12,6 @@ export const userSignupSchema = z.object({
   username: z.string().min(5, "Name must be at least 5 letters"),
   email: z.email("Invalid Email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["customer", "admin"]).default("customer"),
   addresses: z.array(addressSchema).default([]),
 });
 

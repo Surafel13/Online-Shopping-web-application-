@@ -29,11 +29,27 @@ export function AdminOverview() {
     async function loadDashboard() {
       setIsLoading(true);
       try {
-        const [dashboardStats, orders, products] = await Promise.all([
+        const [statsRes, ordersRes, productsRes] = await Promise.allSettled([
           adminService.getDashboardStats(),
           orderService.getAll(),
           productService.getAll(),
         ]);
+
+        const dashboardStats =
+          statsRes.status === 'fulfilled'
+            ? statsRes.value
+            : {
+                revenue: 0,
+                orderCount: 0,
+                customerCount: 0,
+                avgOrderValue: 0,
+              };
+
+        const orders =
+          ordersRes.status === 'fulfilled' ? ordersRes.value : [];
+
+        const products =
+          productsRes.status === 'fulfilled' ? productsRes.value : [];
 
         setStats({
           revenue: dashboardStats.revenue,
@@ -43,15 +59,18 @@ export function AdminOverview() {
         });
 
         const counts = new Map<string, { name: string; sales: number; image: string }>();
+
         orders.forEach((order) => {
           order.items.forEach((item) => {
             const product = getProductFromRef(item.productId);
             if (!product) return;
+
             const existing = counts.get(product._id) || {
               name: product.name,
               sales: 0,
               image: product.images?.[0] || '',
             };
+
             existing.sales += item.quantity;
             counts.set(product._id, existing);
           });
@@ -95,7 +114,7 @@ export function AdminOverview() {
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto space-y-8 pb-12">
-        
+
         <div className="flex justify-between items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
@@ -110,7 +129,7 @@ export function AdminOverview() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((stat, i) => (
-            <motion.div 
+            <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -133,7 +152,7 @@ export function AdminOverview() {
             <AdminRevenueChart />
           </div>
           <div className="xl:col-span-1">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}

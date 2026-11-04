@@ -60,6 +60,13 @@ export const authMiddleware = async (
       throw new AppError("User not found", 401);
     }
 
+        if (!user.isActive) {
+          throw new AppError(
+            "Your account has been deactivated or suspended. Please contact support.",
+            401,
+          );
+        }
+
     req.user = user;
 
     next();

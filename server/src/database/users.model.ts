@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import type { IUser } from "../interface/user.interface.js";
+import { ADMIN_STATUSES } from "../modules/rbac/rbac.constants.js";
 
 const addressSchema = new mongoose.Schema({
     street: {
@@ -52,6 +53,20 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      enum: [...ADMIN_STATUSES],
+      
+      default: "active",
+    },
+    adminRole: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      default: null,
+    },
+    directPermissions: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Permission" },
+    ],
     addresses: [addressSchema],
     profileImg: {
       type: String,
