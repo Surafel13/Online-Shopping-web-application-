@@ -1,4 +1,4 @@
-import apiClient from "./api";
+import apiClient, { requireApiList } from "./api";
 import type { ApiResponse, ApiReview, ApiReviewSummary } from "../types/api";
 
 export const reviewService = {
@@ -10,6 +10,21 @@ export const reviewService = {
       throw new Error("The review response was empty.");
     }
     return data.data;
+  },
+
+  // Super admin moderation
+  async adminList() {
+    const { data } =
+      await apiClient.get<ApiResponse<ApiReview[]>>("/reviews/admin");
+    return requireApiList(data.data, "reviews");
+  },
+
+  async adminSetStatus(reviewId: string, isActive: boolean) {
+    await apiClient.patch(`/reviews/admin/${reviewId}/status`, { isActive });
+  },
+
+  async adminRemove(reviewId: string) {
+    await apiClient.delete(`/reviews/admin/${reviewId}`);
   },
 
   async create(

@@ -7,6 +7,8 @@ import {
   updateReviewSchema,
 } from "./review.validation.js";
 
+import { restrictTo } from "../../middleware/role.middleware.js";
+
 const router = Router();
 
 /**
@@ -226,6 +228,25 @@ router.delete(
   "/reviews/:reviewId",
   authMiddleware,
   ReviewController.deleteReview,
+);
+
+router.get(
+  "/admin",
+  authMiddleware,
+  restrictTo("super_admin"),
+  ReviewController.getAllReviews,
+);
+router.patch(
+  "/admin/:reviewId/status",
+  authMiddleware,
+  restrictTo("super_admin"),
+  ReviewController.updateReviewStatus,
+);
+router.delete(
+  "/admin/:reviewId",
+  authMiddleware,
+  restrictTo("super_admin"),
+  ReviewController.adminDeleteReview,
 );
 
 export default router;

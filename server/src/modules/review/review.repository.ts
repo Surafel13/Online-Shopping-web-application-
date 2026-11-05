@@ -20,6 +20,13 @@ class ReviewRepository {
     });
   }
 
+  async findAllForAdmin() {
+    return await Review.find()
+      .populate("user", "username profileImg")
+      .populate("product", "name slug images")
+      .sort({ createdAt: -1 });
+  }
+
   // Get all reviews for a product
   async findByProduct(productId: string) {
     return await Review.find({

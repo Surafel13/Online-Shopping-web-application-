@@ -1,14 +1,13 @@
 import { SectionPlaceholder } from "./SectionPlaceholder";
 
+export { SuperAdminProducts } from "./SuperAdminProducts";
+export { SuperAdminCategories } from "./SuperAdminCategories";
+export { SuperAdminOrders } from "./SuperAdminOrders";
+export { SuperAdminPayments } from "./SuperAdminPayments";
+export { SuperAdminReviews } from "./SuperAdminReviews";
+
 export const SuperAdminUsers = () => <SectionPlaceholder slug="users" />;
 export const SuperAdminAdmins = () => <SectionPlaceholder slug="admins" />;
-export const SuperAdminProducts = () => <SectionPlaceholder slug="products" />;
-export const SuperAdminCategories = () => (
-  <SectionPlaceholder slug="categories" />
-);
-export const SuperAdminOrders = () => <SectionPlaceholder slug="orders" />;
-export const SuperAdminPayments = () => <SectionPlaceholder slug="payments" />;
-export const SuperAdminReviews = () => <SectionPlaceholder slug="reviews" />;
 export const SuperAdminReports = () => <SectionPlaceholder slug="reports" />;
 export const SuperAdminInventory = () => (
   <SectionPlaceholder slug="inventory" />

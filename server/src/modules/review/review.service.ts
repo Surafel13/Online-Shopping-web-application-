@@ -19,7 +19,7 @@ class ReviewService {
     await ProductRepo.updateRating(
       productId,
       Number(stats.averageRating.toFixed(1)),
-      stats.reviewCount
+      stats.reviewCount,
     );
   }
 
@@ -27,7 +27,7 @@ class ReviewService {
   async createReview(
     userId: string,
     productId: string,
-    data: Pick<IReview, "rating" | "title" | "comment">
+    data: Pick<IReview, "rating" | "title" | "comment">,
   ) {
     this.validateId(userId, "user");
     this.validateId(productId, "product");
@@ -38,8 +38,10 @@ class ReviewService {
       throw new AppError("Product not found or unavailable.", 404);
     }
 
-    const existingReview =
-      await ReviewRepository.findByUserAndProduct(userId, productId);
+    const existingReview = await ReviewRepository.findByUserAndProduct(
+      userId,
+      productId,
+    );
 
     if (existingReview) {
       throw new AppError("You have already reviewed this product.", 409);
@@ -73,6 +75,26 @@ class ReviewService {
     return review;
   }
 
+  async getAllReviews() {
+    return await ReviewRepository.findAllForAdmin();
+  }
+
+  async setReviewStatus(reviewId: string, isActive: boolean) {
+    this.validateId(reviewId, "review");
+    const review = await ReviewRepository.update(reviewId, { isActive });
+    if (!review) throw new AppError("Review not found.", 404);
+    await this.updateProductRating(review.product.toString());
+    return review;
+  }
+
+  async adminDeleteReview(reviewId: string) {
+    this.validateId(reviewId, "review");
+    const review = await ReviewRepository.delete(reviewId);
+    if (!review) throw new AppError("Review not found.", 404);
+    await this.updateProductRating(review.product.toString());
+    return review;
+  }
+  
   // Get all reviews for a product
   async getProductReviews(productId: string) {
     this.validateId(productId, "product");
@@ -103,7 +125,7 @@ class ReviewService {
   async updateReview(
     reviewId: string,
     userId: string,
-    data: Pick<IReview, "rating" | "title" | "comment">
+    data: Pick<IReview, "rating" | "title" | "comment">,
   ) {
     this.validateId(reviewId, "review");
     this.validateId(userId, "user");

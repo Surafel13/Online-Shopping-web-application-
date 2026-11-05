@@ -49,10 +49,45 @@ class ReviewController {
     }
   }
 
+  async getAllReviews(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const reviews = await ReviewService.getAllReviews();
+      return res.status(200).json({ success: true, data: reviews });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateReviewStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { reviewId } = req.params as { reviewId: string };
+      const { isActive } = req.body;
+      if (typeof isActive !== "boolean") {
+        return res
+          .status(400)
+          .json({ success: false, message: "isActive must be a boolean." });
+      }
+      const review = await ReviewService.setReviewStatus(reviewId, isActive);
+      return res.status(200).json({ success: true, data: review });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async adminDeleteReview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { reviewId } = req.params as { reviewId: string };
+      const review = await ReviewService.adminDeleteReview(reviewId);
+      return res.status(200).json({ success: true, data: review });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Get product reviews
   async getProductReviews(req: Request, res: Response, next: NextFunction) {
     try {
-      const { productId } = req.params as { productId: string } ;
+      const { productId } = req.params as { productId: string };
 
       const result = await ReviewService.getProductReviews(productId);
 
