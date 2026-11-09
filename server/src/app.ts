@@ -18,7 +18,6 @@ import authRoute from "./modules/auth/auth.routes.js";
 import userRoute from "./modules/users/user.routes.js";
 import productRoute from "./modules/product/product.route.js";
 import categoryRoute from "./modules/catagory/catagory.route.js";
-import cartRoute from "./modules/cart/cart.route.js";
 import orderRoute from "./modules/orders/order.routes.js";
 import wishlistRoute from "./modules/wishlist/wishlist.routes.js";
 import reviewRoutes from "./modules/review/review.routes.js";
@@ -64,7 +63,6 @@ app.use("/api/categories", categoryRoute);
 
 // Protected user/account routes
 app.use("/api/account", authMiddleware, userRoute);
-app.use("/api/cart", authMiddleware, cartRoute);
 app.use("/api/orders", authMiddleware, orderRoute);
 app.use("/api/wishlist", authMiddleware, wishlistRoute);
 app.use("/api/reviews", reviewRoutes);

@@ -10,6 +10,7 @@ import {
 } from "./order.controller.js";
 
 import { restrictTo } from "../../middleware/role.middleware.js";
+import { authMiddleware } from "../../middleware/auth.middleware.js";
 
 const orderRouter = express.Router();
 
@@ -116,7 +117,7 @@ const orderRouter = express.Router();
  *                 order:
  *                   $ref: '#/components/schemas/Order'
  */
-orderRouter.post("/", createOrder);
+orderRouter.post("/", authMiddleware,  createOrder);
 
 ////////////////////////////////////////////////////////////////////////////////
 // GET MY ORDERS
@@ -228,11 +229,7 @@ orderRouter.get("/:orderId", restrictTo("admin"), getOrderById);
  *       200:
  *         description: Order status updated
  */
-orderRouter.patch(
-  "/:orderId/status",
-  restrictTo("admin"),
-  updateOrderStatus
-);
+orderRouter.patch("/:orderId/status", restrictTo("admin"), updateOrderStatus);
 
 ////////////////////////////////////////////////////////////////////////////////
 // UPDATE PAYMENT STATUS (ADMIN ONLY)
@@ -271,7 +268,7 @@ orderRouter.patch(
 orderRouter.patch(
   "/:orderId/payment-status",
   restrictTo("admin"),
-  updatePaymentStatus
+  updatePaymentStatus,
 );
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -296,10 +293,6 @@ orderRouter.patch(
  *       200:
  *         description: Order deleted successfully
  */
-orderRouter.delete(
-  "/:orderId",
-  restrictTo("admin"),
-  deleteOrder
-);
+orderRouter.delete("/:orderId", restrictTo("admin"), deleteOrder);
 
 export default orderRouter;
