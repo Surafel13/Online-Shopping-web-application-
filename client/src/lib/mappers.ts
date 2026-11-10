@@ -1,53 +1,54 @@
-import type { ProductType } from '../components/shared/ProductCard';
+import type { ProductType } from "../components/shared/ProductCard";
 import type {
-  ApiCart,
-  ApiCartItem,
   ApiCategory,
   ApiOrder,
   ApiProduct,
   ApiUser,
   ApiWishlist,
-} from '../types/api';
-import type { CartItem } from '../redux/slices/cartSlice';
-import type { WishlistItem } from '../redux/slices/wishlistSlice';
+} from "../types/api";
+import type { WishlistItem } from "../redux/slices/wishlistSlice";
 
 const CATEGORY_IMAGES = [
-  'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=600&auto=format&fit=crop',
+  "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=600&auto=format&fit=crop",
 ];
 
-const PLACEHOLDER_IMAGE =
-  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop';
+export const PLACEHOLDER_IMAGE =
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
+
+export function getProductMeta(id: string) {
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return { rating: 4 + (hash % 10) / 10, reviews: 10 + (hash % 200) };
+}
 
 export function resolveCategoryName(
   category: string | ApiCategory,
   categoryMap: Map<string, string>,
 ): string {
-  if (typeof category === 'object' && category?.name) return category.name;
-  return categoryMap.get(String(category)) || 'General';
+  if (typeof category === "object" && category?.name) return category.name;
+  return categoryMap.get(String(category)) || "General";
 }
 
 export function mapApiProductToProductType(
   product: ApiProduct,
   categoryMap: Map<string, string> = new Map(),
 ): ProductType {
-  const createdAt = product.createdAt ? new Date(product.createdAt).getTime() : 0;
+  const { rating, reviews } = getProductMeta(product._id);
+  const createdAt = product.createdAt
+    ? new Date(product.createdAt).getTime()
+    : 0;
   const isNew = createdAt > Date.now() - 30 * 24 * 60 * 60 * 1000;
 
   return {
     id: product._id,
     name: product.name,
-    price: product.finalPrice ?? product.price,
-    originalPrice:
-      product.finalPrice !== undefined && product.finalPrice < product.price
-        ? product.price
-        : undefined,
+    price: product.price,
     image: product.images?.[0] || PLACEHOLDER_IMAGE,
     category: resolveCategoryName(product.category, categoryMap),
-    rating: product.rating ?? 0,
-    reviews: product.reviewCount ?? 0,
+    rating,
+    reviews,
     isNew,
     isOutOfStock: product.stock <= 0,
   };
@@ -60,7 +61,7 @@ export function mapCategoriesForHome(
   return categories.slice(0, 4).map((category, index) => {
     const count = products.filter((product) => {
       const categoryId =
-        typeof product.category === 'object'
+        typeof product.category === "object"
           ? product.category._id
           : String(product.category);
       return categoryId === category._id;
@@ -76,50 +77,13 @@ export function mapCategoriesForHome(
 }
 
 export function getProductId(value: string | ApiProduct): string {
-  return typeof value === 'object' ? value._id : value;
+  return typeof value === "object" ? value._id : value;
 }
 
-export function getProductFromRef(value: string | ApiProduct): ApiProduct | null {
-  return typeof value === 'object' ? value : null;
-}
-
-export function mapCartItemToUi(
-  item: ApiCartItem,
-  productMap: Map<string, ApiProduct>,
-): CartItem | null {
-  const productId = getProductId(item.productId);
-  const product =
-    getProductFromRef(item.productId) || productMap.get(productId);
-
-  if (!product) {
-    return {
-      id: productId,
-      name: 'Product',
-      price: item.price,
-      image: PLACEHOLDER_IMAGE,
-      variant: 'Default',
-      quantity: item.quantity,
-    };
-  }
-
-  return {
-    id: productId,
-    name: product.name,
-    price: item.price,
-    image: product.images?.[0] || PLACEHOLDER_IMAGE,
-    variant: 'Default',
-    quantity: item.quantity,
-  };
-}
-
-export function mapApiCartToUiItems(
-  cart: ApiCart | null,
-  productMap: Map<string, ApiProduct>,
-): CartItem[] {
-  if (!cart?.items?.length) return [];
-  return cart.items
-    .map((item) => mapCartItemToUi(item, productMap))
-    .filter((item): item is CartItem => item !== null);
+export function getProductFromRef(
+  value: string | ApiProduct,
+): ApiProduct | null {
+  return typeof value === "object" ? value : null;
 }
 
 export function mapWishlistToUi(
@@ -144,20 +108,22 @@ export function mapWishlistToUi(
     .filter((item): item is WishlistItem => item !== null);
 }
 
-export function mapOrderStatusToUi(status: ApiOrder['orderStatus']): string {
+export function mapOrderStatusToUi(status: ApiOrder["orderStatus"]): string {
   return status.toUpperCase();
 }
 
-export function mapPaymentStatusToUi(status: ApiOrder['paymentStatus']): string {
+export function mapPaymentStatusToUi(
+  status: ApiOrder["paymentStatus"],
+): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 export function formatOrderDate(date?: string): string {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  if (!date) return "N/A";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -172,10 +138,8 @@ export function mapUserToAuth(user: ApiUser) {
   };
 }
 
-export function buildCategoryMap(categories: ApiCategory[]): Map<string, string> {
+export function buildCategoryMap(
+  categories: ApiCategory[],
+): Map<string, string> {
   return new Map(categories.map((category) => [category._id, category.name]));
-}
-
-export function buildProductMap(products: ApiProduct[]): Map<string, ApiProduct> {
-  return new Map(products.map((product) => [product._id, product]));
 }

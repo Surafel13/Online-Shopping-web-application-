@@ -119,6 +119,7 @@ export interface ApiProduct {
   stock: number;
   images: string[];
   rating?: number;
+  isActive?: boolean;
   reviewCount?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -149,21 +150,6 @@ export interface ApiReviewSummary {
   reviewCount: number;
 }
 
-export interface ApiCartItem {
-  productId: string | ApiProduct;
-  quantity: number;
-  price: number;
-}
-
-export interface ApiCart {
-  _id: string;
-  userId: string;
-  items: ApiCartItem[];
-  totalAmount: number;
-  totalItems: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 export interface ApiWishlist {
   _id: string;

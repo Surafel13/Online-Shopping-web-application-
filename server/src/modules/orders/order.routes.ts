@@ -11,6 +11,7 @@ import {
 
 import { restrictTo } from "../../middleware/role.middleware.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { requirePermission } from "../../middleware/permission.middleware.js";
 
 const orderRouter = express.Router();
 
@@ -160,7 +161,12 @@ orderRouter.get("/me", getUserOrders);
  *       200:
  *         description: List of all orders
  */
-orderRouter.get("/", restrictTo("admin"), getAllOrders);
+orderRouter.get(
+  "/",
+  restrictTo("admin"),
+  requirePermission("orders", "view"),
+  getAllOrders,
+);
 
 ////////////////////////////////////////////////////////////////////////////////
 // GET ORDER BY ID (ADMIN ONLY)
@@ -193,7 +199,12 @@ orderRouter.get("/", restrictTo("admin"), getAllOrders);
  *                 order:
  *                   $ref: '#/components/schemas/Order'
  */
-orderRouter.get("/:orderId", restrictTo("admin"), getOrderById);
+orderRouter.get(
+  "/:orderId",
+  restrictTo("admin"),
+  requirePermission("orders", "view"),
+  getOrderById,
+);
 
 ////////////////////////////////////////////////////////////////////////////////
 // UPDATE ORDER STATUS (ADMIN ONLY)
@@ -229,11 +240,13 @@ orderRouter.get("/:orderId", restrictTo("admin"), getOrderById);
  *       200:
  *         description: Order status updated
  */
-orderRouter.patch("/:orderId/status", restrictTo("admin"), updateOrderStatus);
+orderRouter.patch(
+  "/:orderId/status",
+  restrictTo("admin"),
+  requirePermission("orders", "update"),
+  updateOrderStatus,
+);
 
-////////////////////////////////////////////////////////////////////////////////
-// UPDATE PAYMENT STATUS (ADMIN ONLY)
-////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @swagger
@@ -268,6 +281,7 @@ orderRouter.patch("/:orderId/status", restrictTo("admin"), updateOrderStatus);
 orderRouter.patch(
   "/:orderId/payment-status",
   restrictTo("admin"),
+  requirePermission("payments", "update"),
   updatePaymentStatus,
 );
 
@@ -293,6 +307,11 @@ orderRouter.patch(
  *       200:
  *         description: Order deleted successfully
  */
-orderRouter.delete("/:orderId", restrictTo("admin"), deleteOrder);
+orderRouter.delete(
+  "/:orderId",
+  restrictTo("admin"),
+  requirePermission("orders", "delete"),
+  deleteOrder,
+);
 
 export default orderRouter;

@@ -18,9 +18,9 @@ import { UserMenu } from "./UserMenu";
 import { getNavLinks } from "./navigation";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { logout } from "../../redux/slices/authSlice";
-import { clearCartState } from "../../redux/slices/cartSlice";
-import { clearWishlistState } from "../../redux/slices/wishlistSlice";
-import { clearNotificationState } from "../../redux/slices/notificationSlice";
+import { selectCartItemCount } from "../../redux/slices/cartSlice";
+import { selectWishlistCount } from "../../redux/slices/wishlistSlice";
+import { selectUnreadCount } from "../../redux/slices/notificationSlice";
 import { toggleTheme } from "../../redux/slices/themeSlice";
 import { cn } from "../../lib/utils";
 
@@ -69,13 +69,9 @@ function HeaderIconLink({
 export function Header() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const cartCount = useAppSelector((state) => state.cart.totalItems);
-  const wishlistCount = useAppSelector(
-    (state) => state.wishlist.productIds.length,
-  );
-  const unreadCount = useAppSelector(
-    (state) => state.notifications.unreadCount,
-  );
+  const cartCount = useAppSelector(selectCartItemCount);
+  const wishlistCount = useAppSelector(selectWishlistCount);
+  const unreadCount = useAppSelector(selectUnreadCount);
   const theme = useAppSelector((state) => state.theme.theme);
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -87,9 +83,6 @@ export function Header() {
 
   const confirmLogout = () => {
     dispatch(logout());
-    dispatch(clearCartState());
-    dispatch(clearWishlistState());
-    dispatch(clearNotificationState());
     setLogoutOpen(false);
   };
 

@@ -7,27 +7,38 @@ import { Input } from "../components/ui/input";
 import { Separator } from "../components/ui/separator";
 import { ShieldCheck, Plus } from "lucide-react";
 import type { AppDispatch, RootState } from "../redux/store";
-import { profileService, orderService } from "../services";
-import { fetchCart } from "../redux/slices/cartSlice";
+import { orderService } from "../services";
+import {
+  cartCleared,
+  selectCartItems,
+  selectCartTotals,
+  syncCartWithCatalog,
+} from "../redux/slices/cartSlice";
+import {
+  addAddress,
+  fetchProfile,
+  selectAddresses,
+} from "../redux/slices/profileSlice";
+import { syncOrderNotifications } from "../redux/slices/notificationSlice";
 import { showError, showSuccess } from "../redux/slices/uiSlice";
 import { getApiErrorMessage } from "../lib/errors";
-import type { ApiAddress } from "../types/api";
 
 export function Checkout() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { items, totalAmount } = useSelector((state: RootState) => state.cart);
+  const items = useSelector(selectCartItems);
+  const { subtotal, tax, total } = useSelector(selectCartTotals);
+  const addresses = useSelector(selectAddresses);
   const { user } = useSelector((state: RootState) => state.auth);
 
-  const [addresses, setAddresses] = useState<ApiAddress[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState("");
-  const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
+  // Raw UI choices; the effective values are derived so no effect/setState is needed.
+  const [pickedAddressId, setSelectedAddressId] = useState("");
+  const [wantsNewAddress, setIsAddingNewAddress] = useState(false);
+  const selectedAddressId = pickedAddressId || addresses[0]?._id || "";
+  const isAddingNewAddress = wantsNewAddress || addresses.length === 0;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Initialize email state directly from user state to avoid calling setState synchronously inside useEffect
   const [email, setEmail] = useState(user?.email || "");
-
-  // Shipping Address Form State
   const [shippingForm, setShippingForm] = useState({
     street: "",
     city: "",
@@ -35,8 +46,6 @@ export function Checkout() {
     postalCode: "",
     country: "United States",
   });
-
-  // Payment Form State
   const [paymentForm, setPaymentForm] = useState({
     cardNumber: "",
     expDate: "",
@@ -44,56 +53,32 @@ export function Checkout() {
   });
 
   useEffect(() => {
-    dispatch(fetchCart());
-
-    profileService
-      .getProfile()
-      .then((profile) => {
-        const userAddresses = profile.addresses || [];
-        setAddresses(userAddresses);
-        if (userAddresses.length > 0) {
-          setSelectedAddressId(userAddresses[0]._id);
-          setIsAddingNewAddress(false);
-        } else {
-          setIsAddingNewAddress(true);
-        }
-      })
-      .catch((error: unknown) => {
-        dispatch(showError(getApiErrorMessage(error, "Unable to load saved addresses.")));
-      });
+    void dispatch(fetchProfile());
+    void dispatch(syncCartWithCatalog());
   }, [dispatch]);
 
-  const subtotal =
-    totalAmount ||
-    items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal > 0 ? subtotal * 0.08 : 0;
-  const total = subtotal + tax;
-
   const handlePlaceOrder = async () => {
-    // 1. Validate Contact Info
+    if (items.length === 0) {
+      dispatch(showError("Your cart is empty."));
+      return;
+    }
     if (!email || !email.includes("@")) {
       dispatch(showError("Please provide a valid email address."));
       return;
     }
-
-    // 2. Validate Address
-    let addressId = selectedAddressId;
-    if (isAddingNewAddress || !addressId) {
-      if (
-        !shippingForm.street ||
+    if (
+      isAddingNewAddress &&
+      (!shippingForm.street ||
         !shippingForm.city ||
         !shippingForm.state ||
         !shippingForm.postalCode ||
-        !shippingForm.country
-      ) {
-        dispatch(
-          showError("Please fill out all required shipping address fields."),
-        );
-        return;
-      }
+        !shippingForm.country)
+    ) {
+      dispatch(
+        showError("Please fill out all required shipping address fields."),
+      );
+      return;
     }
-
-    // 3. Validate Payment Info
     if (!paymentForm.cardNumber || !paymentForm.expDate || !paymentForm.cvv) {
       dispatch(showError("Please complete all required payment fields."));
       return;
@@ -101,28 +86,30 @@ export function Checkout() {
 
     setIsSubmitting(true);
     try {
-      // Create new address if user opted for it
+      let addressId = selectedAddressId;
       if (isAddingNewAddress || !addressId) {
-        const profile = await profileService.addAddress(shippingForm);
-        const createdAddress =
-          profile.addresses?.[profile.addresses.length - 1];
-        addressId = createdAddress?._id || "";
+        const profile = await dispatch(addAddress(shippingForm)).unwrap();
+        addressId =
+          profile.addresses?.[profile.addresses.length - 1]?._id ?? "";
       }
-
       if (!addressId) {
         dispatch(showError("Please provide a valid shipping address."));
-        setIsSubmitting(false);
         return;
       }
 
-      // Submit order matching the 2-argument signature: orderService.create(addressId, payload)
-await orderService.create(addressId,  "card");
+      await orderService.create(
+        addressId,
+        "card",
+        items.map(({ id, quantity }) => ({ productId: id, quantity })),
+      );
 
-      dispatch(fetchCart());
+      dispatch(cartCleared());
+      void dispatch(syncOrderNotifications());
       dispatch(showSuccess("Order placed successfully."));
       navigate("/orders");
     } catch (error) {
       dispatch(showError(getApiErrorMessage(error, "Unable to place order.")));
+      void dispatch(syncCartWithCatalog()); // price/stock may have changed
     } finally {
       setIsSubmitting(false);
     }

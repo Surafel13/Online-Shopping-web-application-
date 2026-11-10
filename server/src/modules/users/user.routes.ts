@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { restrictTo } from "../../middleware/role.middleware.js";
+import {
+  requirePermission,
+  restrictAdminToCustomers,
+} from "../../middleware/permission.middleware.js";
 import { upload } from "../../config/multer.js";
 
 import {
@@ -19,8 +23,19 @@ const userRouter = Router();
 
 userRouter.use(authMiddleware);
 
-userRouter.get("/users", restrictTo("admin"), getAllUsers);
-userRouter.patch("/users/:userId", restrictTo("admin"), updateUserByAdmin);
+userRouter.get(
+  "/users",
+  restrictTo("admin"),
+  requirePermission("customers", "view"),
+  getAllUsers,
+);
+userRouter.patch(
+  "/users/:userId",
+  restrictTo("admin"),
+  requirePermission("customers", "update"),
+  restrictAdminToCustomers,
+  updateUserByAdmin,
+);
 
 /**
  * @swagger

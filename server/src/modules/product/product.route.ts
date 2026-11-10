@@ -9,6 +9,7 @@ import {
 
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { restrictTo } from "../../middleware/role.middleware.js";
+import { requirePermission } from "../../middleware/permission.middleware.js";
 import { upload } from "../../config/multer.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import {
@@ -80,6 +81,7 @@ productRoute.post(
   "/",
   authMiddleware,
   restrictTo("admin"),
+  requirePermission("products", "create"),
   upload.array("image", 5),
   validate(createProductSchema),
   createProduct
@@ -164,6 +166,7 @@ productRoute.put(
   "/:id",
   authMiddleware,
   restrictTo("admin"),
+  requirePermission("products", "update"),
   upload.array("image", 5),
   validate(updateProductSchema),
   updateProduct
@@ -193,6 +196,7 @@ productRoute.delete(
   "/:id",
   authMiddleware,
   restrictTo("admin"),
+  requirePermission("products", "delete"),
   deleteProduct
 );
 

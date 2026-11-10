@@ -9,6 +9,7 @@ import {
 
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { restrictTo } from "../../middleware/role.middleware.js";
+import { requirePermission } from "../../middleware/permission.middleware.js";
 
 const catagoryRoute = express.Router();
 
@@ -83,6 +84,7 @@ catagoryRoute.post(
     "/",
     authMiddleware,
     restrictTo("admin"),
+    requirePermission("products", "create"),
     createCategory
 );
 
@@ -192,6 +194,7 @@ catagoryRoute.put(
     "/:id",
     authMiddleware,
     restrictTo("admin"),
+    requirePermission("products", "update"),
     updateCategory
 );
 
@@ -221,6 +224,7 @@ catagoryRoute.delete(
     "/:id",
     authMiddleware,
     restrictTo("admin"),
+    requirePermission("products", "delete"),
     deleteCategory
 );
 

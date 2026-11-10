@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express"
 import { swaggerSpec } from "./config/swagger.js";
+import { env } from "./config/env.js";
 
 
 import morganMiddleware from "./utils/logger/morgan.middleware.js";
@@ -31,7 +32,7 @@ app.use(helmet());
 
 app.use(
     cors({
-        origin: process.env.CLIENT_URL,
+        origin: env.CLIENT_URL,
         credentials: true,
     })
 );

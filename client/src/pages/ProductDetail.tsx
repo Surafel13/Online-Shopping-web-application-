@@ -25,7 +25,7 @@ import type { AppDispatch, RootState } from "../redux/store";
 import { addToCartAsync } from "../redux/slices/cartSlice";
 import {
   addToWishlistAsync,
-  fetchWishlist,
+  selectWishlistProductIds,
   removeFromWishlistAsync,
 } from "../redux/slices/wishlistSlice";
 import { showError, showSuccess } from "../redux/slices/uiSlice";
@@ -34,7 +34,7 @@ export function ProductDetail() {
   const { id } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { productIds } = useSelector((state: RootState) => state.wishlist);
+  const productIds = useSelector(selectWishlistProductIds);
   const [apiProduct, setApiProduct] = useState<ApiProduct | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,11 +79,6 @@ export function ProductDetail() {
     loadProduct();
   }, [dispatch, id]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchWishlist());
-    }
-  }, [dispatch, isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -107,7 +102,10 @@ export function ProductDetail() {
     return (
       <PageTransition>
         <div className="container mx-auto max-w-screen-xl px-4 py-20 text-center">
-          <p className="mb-5 text-sm text-red-600 dark:text-red-400" role="alert">
+          <p
+            className="mb-5 text-sm text-red-600 dark:text-red-400"
+            role="alert"
+          >
             {loadError || "Product details are unavailable."}
           </p>
           <Link to="/collections">
@@ -146,10 +144,19 @@ export function ProductDetail() {
     }
 
     const result = await dispatch(
-      addToCartAsync({ productId: product.id, quantity }),
+      addToCartAsync({ productId: product.id, quantity, product: apiProduct }),
     );
     if (addToCartAsync.fulfilled.match(result)) {
-      dispatch(showSuccess("Added to cart."));
+      const { added, requested } = result.payload;
+      dispatch(
+        showSuccess(
+          added < requested
+            ? `Only ${added} more could be added (stock limit).`
+            : "Added to cart.",
+        ),
+      );
+    } else {
+      dispatch(showError(result.payload ?? "Failed to add item to cart."));
     }
   };
 

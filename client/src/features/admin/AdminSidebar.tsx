@@ -3,8 +3,6 @@ import { LogOut, ChevronRight, ShieldCheck, X } from 'lucide-react';
 import gsap from 'gsap';
 
 import { logout } from '../../redux/slices/authSlice';
-import { clearCartState } from '../../redux/slices/cartSlice';
-import { clearWishlistState } from '../../redux/slices/wishlistSlice';
 
 import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -55,8 +53,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(clearCartState());
-    dispatch(clearWishlistState());
     navigate('/login');
   };
 

@@ -3,8 +3,10 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "./redux/store";
 import { restoreSession } from "./redux/slices/authSlice";
-import { fetchCart } from "./redux/slices/cartSlice";
+import { syncCartWithCatalog } from "./redux/slices/cartSlice";
 import { fetchWishlist } from "./redux/slices/wishlistSlice";
+import { selectUserId } from "./redux/slices/authSlice";
+import { useNotificationSync } from "./hooks/useNotificationSync";
 
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
@@ -93,17 +95,20 @@ function App() {
   const { isAuthenticated, isInitialized } = useSelector(
     (state: RootState) => state.auth
   );
+  const userId = useSelector(selectUserId);
 
   useEffect(() => {
     dispatch(restoreSession());
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchCart());
+    if (isAuthenticated && userId) {
+      dispatch(syncCartWithCatalog());
       dispatch(fetchWishlist());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, userId]);
+
+  useNotificationSync();
 
   useEffect(() => {
     const root = window.document.documentElement;

@@ -3,8 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RootState, AppDispatch } from '../redux/store';
 import { logout, updateAuthUser } from '../redux/slices/authSlice';
-import { clearCartState } from '../redux/slices/cartSlice';
-import { clearWishlistState } from '../redux/slices/wishlistSlice';
+import { selectWishlistCount } from '../redux/slices/wishlistSlice';
 import { showError, showSuccess } from '../redux/slices/uiSlice';
 import { profileService, orderService } from '../services';
 import { getApiErrorMessage } from '../lib/errors';
@@ -652,7 +651,7 @@ type NavId = typeof NAV[number]['id'];
 export function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { productIds } = useSelector((state: RootState) => state.wishlist);
+  const wishlistCount = useSelector(selectWishlistCount);
   const [activeSection, setActiveSection] = useState<NavId>('overview');
   const [stats, setStats] = useState({ orders: 0, wishlist: 0, addresses: 0 });
   const [profile, setProfile] = useState<UserProfile | null>(() =>
@@ -705,8 +704,6 @@ export function Profile() {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(clearCartState());
-    dispatch(clearWishlistState());
   };
 
   const currentProfile = profile;
@@ -722,7 +719,7 @@ export function Profile() {
             onNavigate={setActiveSection}
             stats={{
               ...stats,
-              wishlist: productIds.length,
+              wishlist: wishlistCount,
               addresses: currentProfile?.addresses?.length ?? 0,
             }}
           />

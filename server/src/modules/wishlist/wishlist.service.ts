@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { WishlistRepository } from "./wishlist.repo.js";
 import Users from "../../database/users.model.js";
 import Product from "../../database/product.model.js";
+import { AppError } from "../../utils/appError.utils.js";
 import {
   addToWishlistSchema,
   removeFromWishlistSchema,
@@ -19,7 +20,7 @@ export class WishlistService {
     const validUserId = objectIdSchema.parse(userId);
 
     const user = await Users.findById(validUserId);
-    if (!user) throw new Error("User not found");
+    if (!user) throw new AppError("User not found", 404);
 
     let wishlist = await this.repo.findByUser(this.toObjectId(validUserId));
 
@@ -37,10 +38,10 @@ export class WishlistService {
     });
 
     const user = await Users.findById(validUserId);
-    if (!user) throw new Error("User not found");
+    if (!user) throw new AppError("User not found", 404);
 
     const product = await Product.findById(validProductId);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new AppError("Product not found", 404);
 
     return this.repo.add(
       this.toObjectId(validUserId),
@@ -55,10 +56,10 @@ export class WishlistService {
     });
 
     const user = await Users.findById(validUserId);
-    if (!user) throw new Error("User not found");
+    if (!user) throw new AppError("User not found", 404);
 
     const product = await Product.findById(validProductId);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new AppError("Product not found", 404);
 
     return this.repo.remove(
       this.toObjectId(validUserId),
@@ -70,7 +71,7 @@ export class WishlistService {
     const validUserId = objectIdSchema.parse(userId);
 
     const user = await Users.findById(validUserId);
-    if (!user) throw new Error("User not found");
+    if (!user) throw new AppError("User not found", 404);
 
     return this.repo.clear(this.toObjectId(validUserId));
   }

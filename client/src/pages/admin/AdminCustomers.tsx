@@ -113,17 +113,10 @@ export function AdminCustomers() {
 
   const loadCustomers = useCallback(async () => {
     try {
-      const [usersRes, ordersRes] = await Promise.allSettled([
+      const [users, orders] = await Promise.all([
         userService.getAllUsers(),
         orderService.getAll(),
       ]);
-
-      if (usersRes.status === "rejected") {
-        throw usersRes.reason;
-      }
-
-      const users = usersRes.value;
-      const orders = ordersRes.status === "fulfilled" ? ordersRes.value : [];
 
       const orderStats = new Map<string, { spent: number; orders: number }>();
 

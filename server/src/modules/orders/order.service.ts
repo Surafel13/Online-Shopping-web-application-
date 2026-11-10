@@ -4,6 +4,7 @@ import { OrderRepository } from "./order.repo.js";
 import { UserProfileRepository } from "../users/user.repo.js";
 import Product from "../../database/product.model.js";
 import type { IOrder } from "../../interface/order.interface.js";
+import type { IAddress } from "../../interface/user.interface.js";
 import {
   updateOrderStatusSchema,
   updatePaymentStatusSchema,
@@ -21,10 +22,11 @@ export class OrderService {
   private async buildOrderItems(lines: OrderLineInput[]) {
     const merged = new Map<string, number>();
     for (const line of lines) {
-      merged.set(
-        line.productId,
-        (merged.get(line.productId) ?? 0) + line.quantity,
-      );
+      const quantity = (merged.get(line.productId) ?? 0) + line.quantity;
+      if (quantity > 99) {
+        throw new AppError("Each product is limited to 99 per order", 400);
+      }
+      merged.set(line.productId, quantity);
     }
 
     const products = await Product.find({
@@ -82,7 +84,7 @@ export class OrderService {
     }
 
     const selectedAddress = user.addresses.find(
-      (address: any) => address._id?.toString() === addressId,
+      (address: IAddress) => address._id?.toString() === addressId,
     );
     if (!selectedAddress) {
       throw new AppError("Address not found", 404);

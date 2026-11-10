@@ -3,8 +3,6 @@ import { LogOut, ChevronRight, Crown, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../redux/store";
 import { logout } from "../../redux/slices/authSlice";
-import { clearCartState } from "../../redux/slices/cartSlice";
-import { clearWishlistState } from "../../redux/slices/wishlistSlice";
 import {
   SUPER_ADMIN_NAV,
   SUPER_ADMIN_BASE,
@@ -32,8 +30,6 @@ export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(clearCartState());
-    dispatch(clearWishlistState());
     navigate("/login");
   };
 

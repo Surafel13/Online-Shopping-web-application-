@@ -18,3 +18,16 @@ if (!env.MONGO_URI) {
 if (!env.JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
+
+if (!env.CLIENT_URL) {
+  throw new Error("CLIENT_URL is not defined in environment variables");
+}
+
+const clientUrl = new URL(env.CLIENT_URL);
+if (
+  !["http:", "https:"].includes(clientUrl.protocol) ||
+  clientUrl.origin !== env.CLIENT_URL.replace(/\/$/, "")
+) {
+  throw new Error("CLIENT_URL must be an HTTP(S) origin without a path");
+}
+env.CLIENT_URL = clientUrl.origin;

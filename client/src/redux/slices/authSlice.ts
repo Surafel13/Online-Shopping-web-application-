@@ -1,9 +1,14 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import { authService } from '../../services/authService';
-import { profileService } from '../../services/profileService';
-import { mapUserToAuth } from '../../lib/mappers';
-import { getApiErrorMessage } from '../../lib/errors';
-import type { ILogin, IRegister } from '../../types/user.types';
+import {
+  createAsyncThunk,
+  createSlice,
+  isAnyOf,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+import { authService } from "../../services/authService";
+import { profileService } from "../../services/profileService";
+import { mapUserToAuth } from "../../lib/mappers";
+import { getApiErrorMessage, isAuthError } from "../../lib/errors";
+import type { UserProfile } from "../../types/api";
 
 export interface AuthUser {
   id: string;
@@ -14,7 +19,17 @@ export interface AuthUser {
   permissions: string[];
 }
 
-interface AuthState {
+export interface AuthSession {
+  user: AuthUser;
+  token: string;
+}
+
+/** Restoring a session already loads the full profile, so we hand it to the profile slice. */
+export interface RestoredSession extends AuthSession {
+  profile: UserProfile;
+}
+
+export interface AuthState {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -23,118 +38,97 @@ interface AuthState {
   error: string | null;
 }
 
+type AuthThunkConfig = { rejectValue: string };
+
+const TOKEN_KEY = "token";
+
+const readToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: readToken(),
   isAuthenticated: false,
   isLoading: false,
   isInitialized: false,
   error: null,
 };
 
-export const loginUser = createAsyncThunk(
-  'auth/login',
-  async (credentials: ILogin, { rejectWithValue }) => {
+export const loginUser = createAsyncThunk<
+  AuthSession,
+  { email: string; password: string },
+  AuthThunkConfig
+>("auth/login", async ({ email, password }, { rejectWithValue }) => {
+  try {
+    const result = await authService.login({email, password});
+    localStorage.setItem(TOKEN_KEY, result.token);
+    return { user: mapUserToAuth(result.user), token: result.token };
+  } catch (error) {
+    return rejectWithValue(getApiErrorMessage(error, "Login failed"));
+  }
+});
+
+export const registerUser = createAsyncThunk<
+  AuthSession,
+  { fullName: string; email: string; password: string; confirmPassword: string },
+  AuthThunkConfig
+>(
+  "auth/register",
+  async ({ fullName, email, password, confirmPassword  }, { rejectWithValue }) => {
     try {
-      const result = await authService.login(credentials);
-      localStorage.setItem('token', result.token);
+      const result = await authService.signup({ fullName, email, password, confirmPassword });
+      localStorage.setItem(TOKEN_KEY, result.token);
       return { user: mapUserToAuth(result.user), token: result.token };
     } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, 'Login failed'));
+      return rejectWithValue(getApiErrorMessage(error, "Registration failed"));
     }
   },
 );
 
-export const registerUser = createAsyncThunk(
-  'auth/register',
-  async (
-    registration: IRegister,
-    { rejectWithValue },
-  ) => {
-    try {
-      const result = await authService.signup(registration);
-      localStorage.setItem('token', result.token);
-      return { user: mapUserToAuth(result.user), token: result.token };
-    } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, 'Registration failed'));
-    }
-  },
-);
+export const restoreSession = createAsyncThunk<
+  RestoredSession | null,
+  void,
+  AuthThunkConfig
+>("auth/restoreSession", async (_, { rejectWithValue }) => {
+  const token = readToken();
+  if (!token) return null;
 
-export const restoreSession = createAsyncThunk(
-  'auth/restoreSession',
-  async (_, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-
-    try {
-      const profile = await profileService.getProfile();
-      return { user: mapUserToAuth(profile), token };
-    } catch (error) {
-      localStorage.removeItem('token');
-      return rejectWithValue(getApiErrorMessage(error, 'Session expired'));
-    }
-  },
-);
+  try {
+    const profile = await profileService.getProfile();
+    return { user: mapUserToAuth(profile), token, profile };
+  } catch (error) {
+    // Only drop the token when the server says it is invalid; keep it on network failures.
+    if (isAuthError(error)) localStorage.removeItem(TOKEN_KEY);
+    return rejectWithValue(getApiErrorMessage(error, "Session expired"));
+  }
+});
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
+    // Pure reducer. Token removal and per-user state resets are handled by
+    // listeners / extraReducers in other slices that react to this action.
     logout(state) {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('token');
     },
     clearAuthError(state) {
       state.error = null;
     },
     updateAuthUser(state, action: PayloadAction<Partial<AuthUser>>) {
-      if (state.user) {
-        state.user = { ...state.user, ...action.payload };
-      }
+      if (state.user) state.user = { ...state.user, ...action.payload };
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.error = action.payload as string;
-        localStorage.removeItem('token');
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.error = action.payload as string;
-        localStorage.removeItem('token');
-      })
       .addCase(restoreSession.pending, (state) => {
         state.isLoading = true;
       })
@@ -157,9 +151,40 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-      });
+      })
+      .addMatcher(isAnyOf(loginUser.pending, registerUser.pending), (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addMatcher(
+        isAnyOf(loginUser.fulfilled, registerUser.fulfilled),
+        (state, action) => {
+          state.isLoading = false;
+          state.isAuthenticated = true;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+        },
+      )
+      .addMatcher(
+        isAnyOf(loginUser.rejected, registerUser.rejected),
+        (state, action) => {
+          state.isLoading = false;
+          state.isAuthenticated = false;
+          state.user = null;
+          state.token = null;
+          state.error =
+            action.payload ?? action.error.message ?? "Authentication failed";
+        },
+      );
   },
 });
 
 export const { logout, clearAuthError, updateAuthUser } = authSlice.actions;
 export default authSlice.reducer;
+
+// ---- selectors ----
+type WithAuth = { auth: AuthState };
+export const selectAuthUser = (state: WithAuth) => state.auth.user;
+export const selectIsAuthenticated = (state: WithAuth) =>
+  state.auth.isAuthenticated;
+export const selectUserId = (state: WithAuth) => state.auth.user?.id ?? null;
