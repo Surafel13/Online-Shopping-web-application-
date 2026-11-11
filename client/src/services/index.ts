@@ -8,3 +8,5 @@ export { userService } from "./userService";
 export { adminService } from "./adminService";
 export { superAdminService } from "./superAdminService";
 export { reviewService } from "./reviewService";
+export { notificationService } from "./notificationService";
+export { supportService } from "./supportService";

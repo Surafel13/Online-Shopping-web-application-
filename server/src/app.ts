@@ -22,6 +22,8 @@ import categoryRoute from "./modules/catagory/catagory.route.js";
 import orderRoute from "./modules/orders/order.routes.js";
 import wishlistRoute from "./modules/wishlist/wishlist.routes.js";
 import reviewRoutes from "./modules/review/review.routes.js";
+import supportRoutes from "./modules/support/support.routes.js";
+import notificationRoutes from "./modules/notifications/notification.routes.js";
 import { restrictTo } from "./middleware/role.middleware.js";
 
 import superAdminRoute from "./modules/superadmin/superadmin.routes.js";
@@ -66,7 +68,10 @@ app.use("/api/categories", categoryRoute);
 app.use("/api/account", authMiddleware, userRoute);
 app.use("/api/orders", authMiddleware, orderRoute);
 app.use("/api/wishlist", authMiddleware, wishlistRoute);
-app.use("/api/reviews", reviewRoutes);
+app.use("/api/support", authMiddleware, supportRoutes);
+app.use("/api/reviews", authMiddleware, reviewRoutes);
+app.use("/api/notifications", authMiddleware, notificationRoutes);
+
 
 app.use(
   "/api/super-admin",

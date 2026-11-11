@@ -27,6 +27,7 @@ export interface AppNotification {
 interface NotificationMeta {
   ownerId: string | null;
   hydrated: boolean;
+  serverUnreadCount: number;
   /** False until the first order sync, so existing orders don't spam the user on first login. */
   seeded: boolean;
   knownOrderStatuses: Record<string, OrderStatus>;
@@ -50,6 +51,7 @@ const initialState: NotificationState =
   adapter.getInitialState<NotificationMeta>({
     ownerId: null,
     hydrated: false,
+    serverUnreadCount: 0,
     seeded: false,
     knownOrderStatuses: {},
     syncStatus: "idle",
@@ -62,8 +64,8 @@ const selectors = adapter.getSelectors(
 );
 export const selectNotifications = selectors.selectAll;
 export const selectUnreadCount = createSelector(
-  [selectNotifications],
-  (items) => items.filter((n) => !n.read).length,
+  [selectNotifications, (state: { notifications: NotificationState }) => state.notifications.serverUnreadCount],
+  (items, serverUnreadCount) => items.filter((n) => !n.read).length + serverUnreadCount,
 );
 
 // ---------------- thunk ----------------
@@ -138,6 +140,7 @@ function bindOwner(state: NotificationState, ownerId: string | null) {
   adapter.removeAll(state);
   state.ownerId = ownerId;
   state.hydrated = false;
+  state.serverUnreadCount = 0;
   state.seeded = false;
   state.knownOrderStatuses = {};
   state.syncStatus = "idle";
@@ -188,6 +191,9 @@ const notificationSlice = createSlice({
     notificationsCleared(state) {
       adapter.removeAll(state);
     },
+    setUnreadCount(state, action: PayloadAction<number>) {
+      state.serverUnreadCount = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -229,5 +235,6 @@ export const {
   allNotificationsRead,
   notificationDismissed,
   notificationsCleared,
+  setUnreadCount,
 } = notificationSlice.actions;
 export default notificationSlice.reducer;
